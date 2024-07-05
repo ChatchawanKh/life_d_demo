@@ -1,0 +1,43 @@
+html {
+    height: 100%;
+  }
+  
+  body {
+    margin: 0px;
+    height: 100%;
+  }
+
+  #map{
+    height: 100%;
+  }
+  
+  #root {
+      height: 100%;
+  }
+
+  .Box {
+    button{
+      background-color: #00B2FF;
+      border-radius: 15px;
+    }
+
+    margin: 0.25rem;
+
+    position: absolute;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    -webkit-box-pack: center;
+    justify-content: center;
+    -webkit-box-align: center;
+    align-items: end;
+    top: 18rem;
+    right: 0.75rem;
+}
+
+  
+
+
+
+
+  

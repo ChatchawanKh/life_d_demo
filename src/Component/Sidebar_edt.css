@@ -1,0 +1,188 @@
+body{
+    padding: 0;
+    margin: 0;
+    font-family: "Prompt", sans-serif;
+    font-style: normal;
+}
+
+.sidebar{
+    z-index: 10;
+    background-color: white;
+    border-radius: 0px 25px 25px 0px;
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    filter: drop-shadow(2.57364px 2.57364px 2.57364px rgba(0, 0, 0, 0.25));
+}
+
+.active, 
+.sidebar { 
+    width: 5rem;
+    transform: translateY(-50%);
+    background-clip: border-box;
+}
+
+.sidebar li:hover {
+    background-color: white;
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    border: 0.5rem solid #8DBAFF;
+}
+
+.sidebar li:hover {
+    border-left-color: transparent;
+    border-bottom-color: transparent;
+    border-top-color: transparent;
+}
+
+.sidebar li:hover img {
+    width: 100%;
+    height: auto;
+    transition: all 0.5s ease;
+}
+
+.list {
+    vertical-align: middle;
+}
+
+.sidebar-list2 {
+    height: 10vh;
+}
+
+h1, p {
+    display: none;
+}
+
+.burgerTrigger img.CloseBtn {
+    content: url('/src/Icon/right_arrow.svg');
+}
+
+.listContainer {
+    align-items: center;
+    justify-content: center;
+}
+
+.listContainer li {
+    align-items: center;
+    padding: 0.75rem;
+}
+
+.listContainer .list-2.li {
+    display: none;
+}
+
+.listContainer a {
+    display: none;
+}
+
+.list {
+    padding: 0;
+}
+
+.list-2-menu {
+    opacity: 0;
+}
+
+.logo-banner {
+    content: url('/src/Icon/hamburger.svg');
+    vertical-align: middle;
+    width: 40px;
+    padding: 0.9rem;
+}
+
+
+/* .sidebar-list1 li:hover{ */
+    background-color: #8DBAFF;
+    border-radius: 15px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.25);
+    margin-left: 0.25rem;
+    
+    /* transition: color .3s ease-in-out, box-shadow .3s ease-in-out; */
+    
+
+        img{
+            filter: brightness(0) invert(1);
+        }
+
+        a{
+            color: white;
+            /* position: absolute; */
+            transition: color .3s ease-in-out, box-shadow .3s ease-in-out;
+        }
+/* }  */
+
+.burgerTrigger{
+    position: absolute;
+    cursor: pointer;
+    right: -15px;
+}
+
+.DashBoard{
+    position: absolute;
+    cursor: pointer;
+    bottom: 0;
+    right: -40px;
+}
+
+.logoContainer, .logo-banner {
+    display: flex;
+    align-items: center;
+    margin-top: 0.5rem;
+}
+
+.text-logo{
+    line-height: 0.04;
+    margin-left: 1rem;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+}
+
+h1.LifeD {
+    font-size: 25px;
+    line-height: 25px;
+    background: linear-gradient(90deg, #2AB9C6 0%, #AACB55 29.4%, #F69021 53.9%, #F34B2D 84.4%), linear-gradient(90deg, #2AB9C6 0%, #AACB55 29.4%, #F69021 53.9%, #F34B2D 84.4%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.logo-banner{
+    display: flex;
+    justify-content: center;
+}
+
+p{
+    text-decoration:none;
+    color: #8DBAFF;
+}
+
+.list-2-menu  a {
+    color: black;
+    opacity: 50%;
+}
+
+.list-2-menu li{
+    padding: 0.25rem;
+    a{
+        margin-left: 0.5rem;
+    }
+}
+
+li {
+    padding: 1rem;
+    list-style-type: none;
+
+    img{
+        width: 45px;
+    }
+
+    a{
+        margin-left: 1.5rem;
+    }
+}
+
+ul{
+    margin: 1rem 1rem 1rem 0;
+    padding: 0;
+}
