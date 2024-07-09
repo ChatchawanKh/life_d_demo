@@ -36,7 +36,6 @@ const Map = () => {
             var map = new window.sphere.Map({
                 placeholder: mapRef.current,
             });
-
             sphereMapRef.current = map;
 
             map.Event.bind(sphere.EventName.Ready, async function () {
@@ -47,7 +46,6 @@ const Map = () => {
                 map.Ui.Toolbar.visible(false);
                 map.Ui.Scale.visible(false);
                 map.Ui.LayerSelector.visible(true);
-                console.log(map);
 
                 let pm25wms = new sphere.Layer('0', {
                     type: sphere.LayerType.WMS,
@@ -61,12 +59,11 @@ const Map = () => {
                 setPm25wmsLayer(pm25wms);
                 setIsPM25Checked(true);
 
-
                 const getLoc = () => {
                     navigator.geolocation.getCurrentPosition(
                         (position) => {
                             const { latitude, longitude } = position.coords;
-                            console.log(`UserLocation Lat ${latitude}, lon ${longitude}`);
+                            // console.log(`UserLocation Lat ${latitude}, lon ${longitude}`);
                             map.goTo({ center: { lat: latitude, lon: longitude }, zoom: 15 });
 
                             axios.get(`https://pm25.gistda.or.th/rest/getPm25byLocation?lat=${latitude}&lng=${longitude}`)
