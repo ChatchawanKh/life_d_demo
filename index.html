@@ -15,6 +15,27 @@
 </head>
 
 <body>
+  <script>      
+    var map;
+    var wms_layer = new sphere.Layer('bluemarble_terrain', { 
+      type: sphere.LayerType.WMS, 
+      url: "https://service-proxy-765rkyfg3q-as.a.run.app/api_geoserver/geoserver/pm25_hourly_raster_24hr/wms?",
+      zoomRange: { min: 1, max: 9 },
+      refresh: 180
+    });
+
+    function init() {
+      map = new sphere.Map({
+          placeholder: document.getElementById('map')
+      });
+      map.Layers.setBase(sphere.Layers.STREETS);
+      insertWMS();
+    }
+
+    function insertWMS() {
+      map.Layers.insert('', wms_layer);
+    }
+</script>
   <div id="root"></div>
   <script type="module" src="/src/main.jsx"></script>
 </body>

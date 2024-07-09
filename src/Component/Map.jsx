@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from 'axios';
 import "./Map.css"
+// import addWMS from "./addWMS";
 
 import IconButton from '@mui/material/IconButton';
 import { Box } from "@mui/material";
@@ -20,11 +21,15 @@ import RemoveIcon from '@mui/icons-material/Remove';
 const Map = () => {
     const mapRef = useRef(null);
     const sphereMapRef = useRef(null);
+    const [isPM25Checked, setIsPM25Checked] = useState(true);
+    const [pm25wmsLayer, setPm25wmsLayer] = useState(null);
+
 
     useEffect(() => {
         const script = document.createElement("script");
         script.src = "https://api.sphere.gistda.or.th/map/?key=test2022";
         script.async = true;
+        document.body.appendChild(script);
 
         script.onload = () => {
             var sphere = window.sphere
@@ -35,15 +40,27 @@ const Map = () => {
             sphereMapRef.current = map;
 
             map.Event.bind(sphere.EventName.Ready, async function () {
-                // console.log('map ready');
-                // console.log(map.location());
                 map.Ui.Geolocation.visible(false);
                 map.Ui.Fullscreen.visible(false);
                 map.Ui.DPad.visible(false);
                 map.Ui.Zoombar.visible(false);
                 map.Ui.Toolbar.visible(false);
-                map.Ui.LayerSelector.visible(true);
                 map.Ui.Scale.visible(false);
+                map.Ui.LayerSelector.visible(true);
+                console.log(map);
+
+                let pm25wms = new sphere.Layer('0', {
+                    type: sphere.LayerType.WMS,
+                    url: "https://service-proxy-765rkyfg3q-as.a.run.app/api_geoserver/geoserver/pm25_hourly_raster_24hr/wms",
+                    zoomRange: { min: 1, max: 15 },
+                    zIndex: 5,
+                    opacity: 0.8,
+                    id: 'layer_24pm25'
+                });
+                map.Layers.add(pm25wms);
+                setPm25wmsLayer(pm25wms);
+                setIsPM25Checked(true);
+
 
                 const getLoc = () => {
                     navigator.geolocation.getCurrentPosition(
@@ -52,15 +69,12 @@ const Map = () => {
                             console.log(`UserLocation Lat ${latitude}, lon ${longitude}`);
                             map.goTo({ center: { lat: latitude, lon: longitude }, zoom: 15 });
 
-
-                            // let pv;
                             axios.get(`https://pm25.gistda.or.th/rest/getPm25byLocation?lat=${latitude}&lng=${longitude}`)
                                 .then(response => {
                                     const data = response.data.data
                                     const tb = data.loc['tb_tn']
                                     const ap = data.loc['ap_tn']
 
-                                    // pv = data.loc['pv_tn'];
                                     const pv = data.loc['pv_tn']
 
                                     const pm25 = data['pm25']
@@ -68,13 +82,12 @@ const Map = () => {
                                     // update sect
                                     const date = data.datetimeThai['dateThai']
                                     const time = data.datetimeThai['timeThai']
-                                    // update sect
 
+                                    // update sect
                                     document.getElementById('location').innerHTML = `${tb} ${ap} ${pv}`;
                                     document.getElementById('update').innerHTML = `อัพเดทล่าสุด ${date} ${time}`;
 
                                     //Color Text
-
                                     let color;
                                     if (pm25 < 15) {
                                         color = '#4FAFBF'; // Very Good air quality
@@ -161,8 +174,37 @@ const Map = () => {
             });
         };
         document.body.appendChild(script);
+        return () => {
+            document.body.removeChild(script);
+        };
     }, []);
 
+    const handlePM25Toggle = (event) => {
+        setIsPM25Checked(event.target.checked);
+        // var sphere = window.sphere
+
+        if (event.target.checked) {
+            // eslint-disable-next-line no-undef
+            let pm25wms = new sphere.Layer('0', {
+                // eslint-disable-next-line no-undef
+                type: sphere.LayerType.WMS,
+                url: "https://service-proxy-765rkyfg3q-as.a.run.app/api_geoserver/geoserver/pm25_hourly_raster_24hr/wms",
+                zoomRange: { min: 1, max: 15 },
+                zIndex: 5,
+                opacity: 1,
+                id: 'layer_24pm25'
+            });
+            sphereMapRef.current.Layers.add(pm25wms);
+            setPm25wmsLayer(pm25wms);
+        } else {
+            if (pm25wmsLayer) {
+                sphereMapRef.current.Layers.remove(pm25wmsLayer);
+                setPm25wmsLayer(null);
+            }
+        }
+    };
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -224,20 +266,23 @@ const Map = () => {
     }}>
         <>
             <Box className='Box'>
-                <FormGroup sx={{
-                    backgroundColor: '#00B2FF',
-                    boxShadow: '0px 3.88883px 3.88883px rgba(0, 0, 0, 0.25)',
-                    borderRadius: '15px',
-                    width: '130px',
-                    alignItems: 'center'
-                }}>
+                <FormGroup
+                    sx={{
+                        backgroundColor: '#00B2FF',
+                        boxShadow: '0px 3.88883px 3.88883px rgba(0, 0, 0, 0.25)',
+                        borderRadius: '15px',
+                        width: '130px',
+                        alignItems: 'center'
+                    }}>
                     <FormControlLabel
+                        className="check"
                         sx={{
                             margin: '0.5rem',
                             height: '18px'
                         }}
                         value="PM2.5"
-                        control={<Switch color="primary" />}
+                        control={<Switch checked={isPM25Checked}
+                            onChange={handlePM25Toggle} color="primary" />}
                         label={<span style={{ fontSize: '14px', color: 'white' }}>PM2.5</span>}
                         labelPlacement="start"
                     />
