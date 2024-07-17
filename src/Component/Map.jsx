@@ -1,13 +1,22 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from 'axios';
 import "./Map.css"
-// import addWMS from "./addWMS";
+// import { styled, css } from '@mui/system';
 
-import IconButton from '@mui/material/IconButton';
-import { Box } from "@mui/material";
-import { Unstable_Popup as BasePopup } from '@mui/base/Unstable_Popup';
+//Mui infra
+import { List, ListItemButton, Box } from "@mui/material";
+import Zoom from '@mui/material/Zoom';
+import Tooltip from '@mui/material/Tooltip';
+import { Popper } from '@mui/base/Popper';
+import Card from '@mui/material/Card';
+import { CardActionArea } from '@mui/material';
+import Paper from '@mui/material/Paper';
+import InputBase from '@mui/material/InputBase';
+import SearchIcon from '@mui/icons-material/Search';
+// import { TextField, Autocomplete } from '@mui/material';
 
 //Icon
+import IconButton from '@mui/material/IconButton';
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
@@ -16,6 +25,10 @@ import MyLocationIcon from '@mui/icons-material/MyLocation';
 import LayersIcon from '@mui/icons-material/Layers';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
+import Street from '/src/Icon/street.svg'
+import Satt from '/src/Icon/satt.svg'
+import ClearIcon from '@mui/icons-material/Clear';
+// import { response } from "express";
 
 
 const Map = () => {
@@ -23,6 +36,31 @@ const Map = () => {
     const sphereMapRef = useRef(null);
     const [isPM25Checked, setIsPM25Checked] = useState(true);
     const [pm25wmsLayer, setPm25wmsLayer] = useState(null);
+
+    // const [options, setOptions] = useState([]);
+    // const [inputValue, setInputValue] = useState('');
+
+    // useEffect(() => {
+    //     if (inputValue !== '') {
+    //         const fetchData = async () => {
+    //             try {
+    //                 const response = await axios.get(`https://api.sphere.gistda.or.th/services/search/suggest`, {
+    //                     params: {
+    //                         keyword: inputValue,
+    //                         limit: 5,
+    //                         sdx: true,
+    //                         key: 'test2022'
+    //                     }
+    //                 });
+    //                 setOptions(response.data.suggestions || []);
+    //             } catch (error) {
+    //                 console.error('Error fetching suggestions:', error);
+    //             }
+    //         };
+
+    //         fetchData();
+    //     }
+    // }, [inputValue]);
 
 
     useEffect(() => {
@@ -38,6 +76,7 @@ const Map = () => {
             });
             sphereMapRef.current = map;
 
+
             map.Event.bind(sphere.EventName.Ready, async function () {
                 map.Ui.Geolocation.visible(false);
                 map.Ui.Fullscreen.visible(false);
@@ -45,9 +84,9 @@ const Map = () => {
                 map.Ui.Zoombar.visible(false);
                 map.Ui.Toolbar.visible(false);
                 map.Ui.Scale.visible(false);
-                map.Ui.LayerSelector.visible(true);
+                map.Ui.LayerSelector.visible(false);
 
-                let pm25wms = new sphere.Layer('0', {
+                var pm25wms = new sphere.Layer('0', {
                     type: sphere.LayerType.WMS,
                     url: "https://service-proxy-765rkyfg3q-as.a.run.app/api_geoserver/geoserver/pm25_hourly_raster_24hr/wms",
                     zoomRange: { min: 1, max: 15 },
@@ -64,7 +103,7 @@ const Map = () => {
                         (position) => {
                             const { latitude, longitude } = position.coords;
                             // console.log(`UserLocation Lat ${latitude}, lon ${longitude}`);
-                            map.goTo({ center: { lat: latitude, lon: longitude }, zoom: 15 });
+                            // map.goTo({ center: { lat: latitude, lon: longitude }, zoom: 15 });
 
                             axios.get(`https://pm25.gistda.or.th/rest/getPm25byLocation?lat=${latitude}&lng=${longitude}`)
                                 .then(response => {
@@ -84,7 +123,9 @@ const Map = () => {
                                     document.getElementById('location').innerHTML = `${tb} ${ap} ${pv}`;
                                     document.getElementById('update').innerHTML = `อัพเดทล่าสุด ${date} ${time}`;
 
-                                    //Color Text
+                                    ///////////////////////////////////////////////////////////////////////////////////////////////
+                                    ///////////////////////////////////////// Text Color  /////////////////////////////////////////
+                                    ///////////////////////////////////////////////////////////////////////////////////////////////
                                     let color;
                                     if (pm25 < 15) {
                                         color = '#4FAFBF'; // Very Good air quality
@@ -110,7 +151,9 @@ const Map = () => {
                                     } else {
                                         level = 'มีผล'; // Unhealthy for sensitive group
                                     }
-                                    //Color Text
+                                    ///////////////////////////////////////////////////////////////////////////////////////////////
+                                    ///////////////////////////////////////// Text Color  /////////////////////////////////////////
+                                    ///////////////////////////////////////////////////////////////////////////////////////////////
 
                                     const pm25Formatted = pm25.toFixed(2);
                                     const valueElement = document.getElementById('value');
@@ -122,7 +165,7 @@ const Map = () => {
                                     // console.log(encodedPv);
                                     // axios.get(`https://tmd.go.th/api/WeatherForecast7Day/weather-forecast-7day-by-province?
                                     //     %20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20
-                                    //     Sorting=weatherForecast7Day.recordTime%20asc&FilterText=${encodedPv}&MaxResultCount=7&culture=th-TH`)
+                                    //     Sorting=weatherForecast7Day.recordTime%20asc&FilterText=กรุงเทพมหานคร&MaxResultCount=7&culture=th-TH`)
                                     //     .then(response => {
                                     //         const temp_rain = response.data
                                     //         console.log(temp_rain);
@@ -130,30 +173,6 @@ const Map = () => {
                                 })
                         }
                     );
-                    // map.Event.bind(window.sphere.EventName.Ready, () => {
-                    //     map.Ui.Toolbar.visible(false);
-
-                    //     window.sphere.Util.loadStyle(sphere.Server.map + "/js/mapbox-gl-draw.css"),
-                    //         window.sphere.Util.loadScript(sphere.Server.map + "/js/mapbox-gl-draw.js", () => {
-
-                    //             // see more options https://github.com/mapbox/mapbox-gl-draw/blob/main/docs/API.md#options
-                    //             const drawOptions = {
-                    //                 controls: {
-                    //                     Geolocation: true,
-                    //                     point: true,
-                    //                     line_string: true,
-                    //                     polygon: true,
-                    //                     trash: true,
-                    //                     combine_features: false,
-                    //                     uncombine_features: false
-                    //                 }
-                    //             };
-
-                    //             var drawPanel = new window.MapboxDraw(drawOptions);
-                    //             map.Renderer.addControl(drawPanel, 'top-right'); // see details https://docs.mapbox.com/mapbox-gl-js/api/#map#addcontrol
-                    //         });
-                    // });
-
                 };
 
                 const clickButtonWithTitle = (title) => {
@@ -168,6 +187,7 @@ const Map = () => {
                 };
                 getLoc();
                 clickButtonWithTitle('Find my location');
+
             });
         };
         document.body.appendChild(script);
@@ -204,8 +224,47 @@ const Map = () => {
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////// Geo Tool  ///////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    // Event handler for geolocation button
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////// Search Bar ///////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    const searchRef = useRef(null);
+    const [suggestions, setSuggestions] = useState([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+
+    const handleSearchClick = () => {
+        const API = 'https://api.sphere.gistda.or.th/services/search/suggest';
+        const inputValue = searchRef.current.value.trim();
+        console.log(inputValue);
+
+        axios.get(API, {
+            params: {
+                keyword: inputValue,
+                limit: 10,
+                sdx: true,
+                key: 'test2022'
+            }
+        })
+            .then(response => {
+                const data = response.data.data;
+                setSuggestions(data);
+                setShowSuggestions(true);
+            })
+    }
+
+    const handleClearClick = () => {
+        setSuggestions([]);
+        setShowSuggestions(false);
+        searchRef.current.value = '';
+    };
+
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////// Search Bar ///////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
     const location = () => {
         const map = sphereMapRef.current;
         map.Ui.Geolocation.trigger();
@@ -225,7 +284,7 @@ const Map = () => {
         if (map && typeof map.zoom === 'function') {
             try {
                 const currentZoom = map.zoom();
-                map.zoom(currentZoom + 1); // Zoom in by increasing the zoom level
+                map.zoom(currentZoom + 1);
             } catch (error) {
                 console.error('Zoom in error:', error);
             }
@@ -239,7 +298,7 @@ const Map = () => {
         if (map && typeof map.zoom === 'function') {
             try {
                 const currentZoom = map.zoom();
-                map.zoom(currentZoom - 1); // Zoom out by decreasing the zoom level
+                map.zoom(currentZoom - 1);
             } catch (error) {
                 console.error('Zoom out error:', error);
             }
@@ -248,20 +307,152 @@ const Map = () => {
         }
     };
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-
-    const [anchor, setAnchor] = React.useState(null);
-    const handleClick = (event) => {
-        setAnchor(anchor ? null : event.currentTarget);
+    const StreetBase = () => {
+        const map = sphereMapRef.current;
+        map.Layers.setBase(window.sphere.Layers.STREETS);
     };
 
-    const open = Boolean(anchor);
-    const id = open ? 'simple-popper' : undefined;
+    const HybridBase = () => {
+        const map = sphereMapRef.current;
+        map.Layers.setBase(window.sphere.Layers.HYBRID);
+    };
 
-    return <div id="map" ref={mapRef} style={{
-        width: "100%",
-    }}>
+    const [anchorEl, setAnchorEl] = React.useState(null);
+    const popperRef = useRef(null);
+
+    const handleClick = (event) => {
+        setAnchorEl(anchorEl ? null : event.currentTarget);
+    };
+
+    const handleClickOutside = (event) => {
+        if (popperRef.current && !popperRef.current.contains(event.target)) {
+            setAnchorEl(null);
+        }
+    };
+
+    useEffect(() => {
+        if (anchorEl) {
+            document.addEventListener('mousedown', handleClickOutside);
+        } else {
+            document.removeEventListener('mousedown', handleClickOutside);
+        }
+    }, [anchorEl]);
+
+    const open = Boolean(anchorEl);
+    const id = open ? 'simple-popper' : undefined;
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////// Geo Tool  ///////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    return <div id="map" ref={mapRef}
+        style={{
+            width: "100%",
+        }}>
         <>
+            <div style={{
+                position: 'absolute',
+                right: '1rem',
+                top: '1em',
+                zIndex: '10'
+            }}>
+                <Paper
+                    component="form"
+                    sx={{
+                        p: '2px 4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        width: 400,
+                        boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25), inset 0px 4px 4px rgba(0, 0, 0, 0.25)'
+                    }}
+                >
+                    <Tooltip
+                        title="ค้นหา"
+                        arrow
+                        placement="bottom"
+                        TransitionComponent={Zoom}
+                        componentsProps={{
+                            tooltip: {
+                                sx: {
+                                    color: 'black',
+                                    bgcolor: 'white',
+                                    fontFamily: 'Prompt',
+                                    '& .MuiTooltip-arrow': {
+                                        color: 'white',
+                                    },
+                                },
+                            },
+                        }}
+                    ><IconButton
+                        onClick={handleSearchClick}
+                        id='myBtn'
+                        type="button"
+                        sx={{ p: '10px' }}
+                        aria-label="search">
+                            <SearchIcon />
+                        </IconButton>
+                    </Tooltip>
+                    <InputBase
+                        id='result'
+                        type="text"
+                        inputRef={searchRef}
+                        sx={{ ml: 1, flex: 1, fontFamily: 'Prompt' }}
+                        placeholder="ระบุคำค้นหา เช่น ชื่อสถานที่"
+                        inputProps={{ 'aria-label': 'ระบุคำค้นหา เช่น ชื่อสถานที่' }}
+                    />
+                    <Tooltip
+                        title="ล้าง"
+                        arrow
+                        placement="bottom"
+                        TransitionComponent={Zoom}
+                        componentsProps={{
+                            tooltip: {
+                                sx: {
+                                    color: 'black',
+                                    bgcolor: 'white',
+                                    fontFamily: 'Prompt',
+                                    '& .MuiTooltip-arrow': {
+                                        color: 'white',
+                                    },
+                                },
+                            },
+                        }}
+                    >
+                        <IconButton
+                            onClick={handleClearClick}
+                        >
+                            <ClearIcon />
+                        </IconButton>
+                    </Tooltip>
+                </Paper>
+                {showSuggestions && (
+                    <Paper sx={{ width: 408, }}>
+                        <Box
+                            sx={{
+                                marginTop: '0.5rem',
+                                overflowY: 'auto',
+                                maxHeight: '20vh'
+                            }}
+                        >
+                            {suggestions.length > 0 ? (
+                                <List sx={{ padding: '0.5rem' }}>
+                                    {suggestions.map((item, index) => (
+                                        <ListItemButton key={index}>{item.name}</ListItemButton>
+                                    ))}
+                                </List>
+                            ) : (
+                                <p style={{
+                                    marginTop: '0.5rem',
+                                    height: '1.5rem',
+                                    padding: '0.5rem',
+                                    textAlign: 'center',
+                                    fontSize: '16px'
+                                }}>ไม่พบข้อมูล</p>
+                            )}
+                        </Box>
+                    </Paper>
+                )}
+            </div>
             <Box className='Box'>
                 <FormGroup
                     sx={{
@@ -298,91 +489,235 @@ const Map = () => {
                         color: 'white',
                         width: '40px',
                         '&:hover': {
-                            color: "#00B2FF",
-
+                            color: '#00B2FF',
                         },
-                    }}>
-                    <IconButton className="zoomin"
-                        onClick={zoomin}
-                        sx={{
-                            width: '35px',
-                            color: 'white'
+                    }}
+                >
+                    <Tooltip
+                        title="ซูมเข้า"
+                        arrow
+                        placement="left"
+                        TransitionComponent={Zoom}
+                        componentsProps={{
+                            tooltip: {
+                                sx: {
+                                    bgcolor: '#00B2FF',
+                                    fontFamily: 'Prompt',
+                                    '& .MuiTooltip-arrow': {
+                                        color: '#00B2FF',
+                                    },
+                                },
+                            },
                         }}
                     >
-                        <AddIcon />
-                    </IconButton>
-                    <hr style={{ width: '80%', opacity: '50%' }} />
-                    <IconButton className="Zoomout"
-                        onClick={zoomout}
-                        sx={{
-                            borderRadius: '0',
-                            width: '35px',
-                            color: 'white'
+                        <IconButton
+                            className="zoomin"
+                            onClick={zoomin}
+                            sx={{
+                                width: '35px',
+                                color: 'white',
+                            }}
+                        >
+                            <AddIcon />
+                        </IconButton>
+                        <hr style={{ width: '80%', opacity: '50%' }} />
+                    </Tooltip>
+                    <Tooltip
+                        title="ซูมออก"
+                        arrow
+                        placement="left"
+                        TransitionComponent={Zoom}
+                        componentsProps={{
+                            tooltip: {
+                                sx: {
+                                    bgcolor: '#00B2FF',
+                                    fontFamily: 'Prompt',
+                                    '& .MuiTooltip-arrow': {
+                                        color: '#00B2FF',
+                                    },
+                                },
+                            },
                         }}
                     >
-                        <RemoveIcon />
-                    </IconButton>
+                        <IconButton
+                            className="zoomout"
+                            onClick={zoomout}
+                            sx={{
+                                borderRadius: '0',
+                                width: '35px',
+                                color: 'white',
+                            }}
+                        >
+                            <RemoveIcon />
+                        </IconButton>
+                    </Tooltip>
                 </FormGroup>
 
-                <IconButton
-                    className="hosnear"
-                    sx={{
-                        margin: '0.5rem',
-                        boxShadow: '0px 3.88883px 3.88883px rgba(0, 0, 0, 0.25)',
-                        color: 'white',
-                        '&:hover': {
-                            color: "#00B2FF",
-                        },
-                    }}
-                >
-                    <WhereToVoteIcon />
-                </IconButton>
 
-                <IconButton
-                    className="basemap"
-                    onClick={handleClick}
-                    sx={{
-                        margin: '0.5rem',
-                        boxShadow: '0px 3.88883px 3.88883px rgba(0, 0, 0, 0.25)',
-                        color: 'white',
-                        '&:hover': {
-                            color: "#00B2FF",
+                <Tooltip
+                    title="ระบุตำแหน่งที่สนใจ" arrow placement="left"
+                    TransitionComponent={Zoom}
+                    componentsProps={{
+                        tooltip: {
+                            sx: {
+                                bgcolor: '#00B2FF',
+                                fontFamily: 'Prompt',
+                                '& .MuiTooltip-arrow': {
+                                    color: '#00B2FF',
+                                },
+                            },
                         },
                     }}
                 >
-                    <LayersIcon />
-                </IconButton>
-                <BasePopup
-                    sx={{ left: 'rem' }}
+                    <IconButton
+                        className="hosnear"
+                        sx={{
+                            margin: '0.5rem',
+                            boxShadow: '0px 3.88883px 3.88883px rgba(0, 0, 0, 0.25)',
+                            color: 'white',
+                            '&:hover': {
+                                color: "#00B2FF",
+                            },
+                        }}
+                    >
+                        <WhereToVoteIcon />
+                    </IconButton>
+                </Tooltip>
+                <Tooltip
+                    title="แผนที่ฐาน" arrow placement="left"
+                    TransitionComponent={Zoom}
+                    componentsProps={{
+                        tooltip: {
+                            sx: {
+                                bgcolor: '#00B2FF',
+                                fontFamily: 'Prompt',
+                                '& .MuiTooltip-arrow': {
+                                    color: '#00B2FF',
+                                },
+                            },
+                        },
+                    }}
+                >
+                    <IconButton
+                        aria-describedby={id} type="button" onClick={handleClick}
+                        className="basemap"
+                        sx={{
+                            margin: '0.5rem',
+                            boxShadow: '0px 3.88883px 3.88883px rgba(0, 0, 0, 0.25)',
+                            color: 'white',
+                            '&:hover': {
+                                color: "#00B2FF",
+                            },
+                        }}
+                    >
+                        <LayersIcon />
+                    </IconButton>
+                </Tooltip>
+                <Popper
+                    TransitionComponent={Zoom}
+                    placement="left"
                     id={id}
                     open={open}
-                    anchor={anchor}
-                    anchorOrigin={{
-                        vertical: "bottom",
-                        horizontal: "right"
-                    }}>
-                    <span>The content of the Popup.</span>
-                </BasePopup>
+                    anchorEl={anchorEl}
+                    ref={popperRef}>
+                    <Card
+                        sx={{
+                            marginRight: '0.5rem',
+                            padding: '0.25rem'
+                        }}>
 
-                <IconButton
-                    className="location"
-                    onClick={location}
-                    sx={{
-                        margin: '0.5rem',
-                        boxShadow: '0px 3.88883px 3.88883px rgba(0, 0, 0, 0.25)',
-                        color: 'white',
-                        '&:hover': {
-                            color: "#00B2FF",
+
+                        <div className='Basemap'
+                            style={{
+                                textAlign: 'center',
+                                display: 'flex'
+                            }}>
+                            <CardActionArea
+                                onClick={StreetBase}
+                                className='Street'
+                                style={{ padding: '0.25rem' }}
+                            >
+                                <img src={Street} alt="Street" />
+                                <br />
+                                <span>เส้นถนน</span>
+                            </CardActionArea>
+
+                            <CardActionArea
+                                onClick={HybridBase}
+                                className='Sat' style={{ padding: '0.25rem' }}>
+                                <img src={Satt} />
+                                <br />
+                                <span>ดาวเทียม</span>
+                            </CardActionArea>
+                        </div>
+                    </Card>
+                </Popper>
+
+                <Tooltip
+                    title="ตำแหน่งของฉัน" arrow placement="left"
+                    TransitionComponent={Zoom}
+                    componentsProps={{
+                        tooltip: {
+                            sx: {
+                                bgcolor: '#00B2FF',
+                                fontFamily: 'Prompt',
+                                '& .MuiTooltip-arrow': {
+                                    color: '#00B2FF',
+                                },
+                            },
                         },
                     }}
                 >
-                    <MyLocationIcon />
+                    <IconButton
+                        className="location"
+                        onClick={location}
+                        sx={{
+                            margin: '0.5rem',
+                            boxShadow: '0px 3.88883px 3.88883px rgba(0, 0, 0, 0.25)',
+                            color: 'white',
+                            '&:hover': {
+                                color: "#00B2FF",
+                            },
+                        }}
+                    >
+                        <MyLocationIcon />
 
-                </IconButton>
+                    </IconButton>
+                </Tooltip>
             </Box>
         </>
     </div >;
-
 };
+
+// const grey = {
+//     50: '#F3F6F9',
+//     100: '#E5EAF2',
+//     200: '#DAE2ED',
+//     300: '#C7D0DD',
+//     400: '#B0B8C4',
+//     500: '#9DA8B7',
+//     600: '#6B7A90',
+//     700: '#434D5B',
+//     800: '#303740',
+//     900: '#1C2025',
+// };
+
+// const StyledPopperDiv = styled('div')(
+//     ({ theme }) => css`
+//       background-color: rgba(255, 255, 255, 0.7);
+//       border-radius: 8px;
+//       border: 1px solid ${theme.palette.mode === 'dark' ? grey[700] : grey[200]};
+//       box-shadow: ${theme.palette.mode === 'dark'
+//             ? `0px 4px 8px rgb(0 0 0 / 0.7)`
+//             : `0px 4px 8px rgb(0 0 0 / 0.1)`};
+//       padding: 0.75rem;
+//       color: ${theme.palette.mode === 'dark' ? grey[100] : grey[700]};
+//       font-size: 0.875rem;
+//       font-family: 'IBM Plex Sans', sans-serif;
+//       font-weight: 500;
+//       opacity: 1;
+//       margin: 0.25rem 0;
+//     `,
+// );
 
 export default Map;

@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useEffect, useState } from 'react'
 import axios from 'axios';
 import './Map.jsx'
-import './Card.css'
+// import './Card.css'
 
 import Card from '@mui/material/Card';
 import { CardActionArea } from '@mui/material';
@@ -26,14 +26,14 @@ export default function MediaCard() {
                             `}
                 </style>
 
-                <img src={Legend} style={{ width: '355px', position: 'relative', top: 0, left: 0, right: '1rem', zIndex: 25 }}></img>
+                <img src={Legend} style={{ width: '355px', position: 'relative', top: 0, left: 0, right: '1rem', zIndex: 10 }}></img>
                 <Card
                     sx={{
-                        width: 355,
+                        maxWidth: '355px',
+                        maxHeight: '155px',
                         certicleAlign: 'middle',
                         position: 'relative',
-                        zIndex: 20,
-                        height: 155
+                        zIndex: 10
                     }}
                 >
                     <CardActionArea>
