@@ -234,6 +234,8 @@ const Map = () => {
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
 
+    // const [clickedNavigation, setClickedNavigation] = useState(null);
+
     const handleSearchClick = () => {
         const API = 'https://api.sphere.gistda.or.th/services/search/suggest';
         const inputValue = searchRef.current.value.trim();
@@ -259,6 +261,72 @@ const Map = () => {
         setShowSuggestions(false);
         searchRef.current.value = '';
     };
+
+    const navigate = (itemName) => {
+        console.log(`${itemName}`);
+        const loc = `${itemName}`
+        const API = 'https://api.sphere.gistda.or.th/services/search/search?';
+
+        axios.get(API, {
+            params: {
+                keyword: loc,
+                limit: 10,
+                showdistance: true,
+                key: 'test2022'
+            }
+        })
+            .then(response => {
+                const responseData = response.data.data;
+                responseData.forEach(item => {
+                    const lat = item.lat
+                    const lon = item.lon
+                    const map = sphereMapRef.current;
+
+                    var marker = new window.sphere.Marker({ lat: lat, lon: lon });
+                    map.Overlays.add(marker);
+                    // map.Overlays.clear();
+                    map.goTo({ center: { lat: lat, lon: lon }, zoom: 13 });
+
+
+                    console.log(lat);
+                    console.log(lon);
+                });
+            })
+
+
+    };
+
+
+    // const navigate = (event) => {
+    //     const innerHTML = event.currentTarget.innerHTML;
+    //     console.log(`Clicked inner HTML: ${innerHTML}`);
+    //     // Add any additional logic you need here
+    // };
+
+
+    // const naviGation = () => {
+    //     document.getElementById('clear').inner
+
+    //     const API = `ttps://api.sphere.gistda.or.th/services/search/suggest?keyword=${encodedData}&limit=10&sdx=true&key=test2022`;
+    //     const inputValue = searchRef.current.value.trim();
+    //     console.log(inputValue);
+
+    //     axios.get(API, {
+    //         params: {
+    //             keyword: inputValue,
+    //             limit: 10,
+    //             sdx: true,
+    //             key: 'test2022'
+    //         }
+    //     })
+    //         .then(response => {
+    //             const data = response.data.data;
+    //             setSuggestions(data);
+    //             setShowSuggestions(true);
+    //         })
+    // }
+
+
 
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -435,9 +503,11 @@ const Map = () => {
                             }}
                         >
                             {suggestions.length > 0 ? (
-                                <List sx={{ padding: '0.5rem' }}>
+                                <List id='place' sx={{ padding: '0.5rem' }}>
                                     {suggestions.map((item, index) => (
-                                        <ListItemButton key={index}>{item.name}</ListItemButton>
+                                        <ListItemButton onClick={() => navigate(item.name)} key={index}>
+                                            {item.name}
+                                        </ListItemButton>
                                     ))}
                                 </List>
                             ) : (
