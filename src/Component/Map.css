@@ -21,6 +21,10 @@ html {
       border-radius: 15px;
     }
 
+    .remove{
+      background-color: #fff;
+    }
+
     margin: 0.25rem;
 
     position: absolute;
@@ -34,6 +38,21 @@ html {
     top: 18rem;
     right: 0.75rem;
 }
+
+.Basemap{
+  z-index: 12;
+}
+
+/* .css-wfnhn0-MuiChip-root,
+.MuiChip-icon {
+  margin-left: 4px;
+  margin-right: -4px;
+  font-size: 18px;
+  color: white;
+} */
+
+
+
 
 
 

@@ -4,7 +4,7 @@ import "./Map.css"
 // import { styled, css } from '@mui/system';
 
 //Mui infra
-import { List, ListItemButton, Box } from "@mui/material";
+import { List, ListItemButton, Box, Chip, Stack, Button } from "@mui/material";
 import Zoom from '@mui/material/Zoom';
 import Tooltip from '@mui/material/Tooltip';
 import { Popper } from '@mui/base/Popper';
@@ -13,7 +13,12 @@ import { CardActionArea } from '@mui/material';
 import Paper from '@mui/material/Paper';
 import InputBase from '@mui/material/InputBase';
 import SearchIcon from '@mui/icons-material/Search';
-// import { TextField, Autocomplete } from '@mui/material';
+
+
+// import { red } from '@mui/material/colors';
+import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
+import Vaccines from '@mui/icons-material/Vaccines';
+import MedicalInformation from '@mui/icons-material/MedicalInformation';
 
 //Icon
 import IconButton from '@mui/material/IconButton';
@@ -28,6 +33,9 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import Street from '/src/Icon/street.svg'
 import Satt from '/src/Icon/satt.svg'
 import ClearIcon from '@mui/icons-material/Clear';
+import WrongLocationIcon from '@mui/icons-material/WrongLocation';
+import { Filter } from "@mui/icons-material";
+// import Marker from 'src/Icon/Marker_Animation.gif'
 // import { response } from "express";
 
 
@@ -36,32 +44,6 @@ const Map = () => {
     const sphereMapRef = useRef(null);
     const [isPM25Checked, setIsPM25Checked] = useState(true);
     const [pm25wmsLayer, setPm25wmsLayer] = useState(null);
-
-    // const [options, setOptions] = useState([]);
-    // const [inputValue, setInputValue] = useState('');
-
-    // useEffect(() => {
-    //     if (inputValue !== '') {
-    //         const fetchData = async () => {
-    //             try {
-    //                 const response = await axios.get(`https://api.sphere.gistda.or.th/services/search/suggest`, {
-    //                     params: {
-    //                         keyword: inputValue,
-    //                         limit: 5,
-    //                         sdx: true,
-    //                         key: 'test2022'
-    //                     }
-    //                 });
-    //                 setOptions(response.data.suggestions || []);
-    //             } catch (error) {
-    //                 console.error('Error fetching suggestions:', error);
-    //             }
-    //         };
-
-    //         fetchData();
-    //     }
-    // }, [inputValue]);
-
 
     useEffect(() => {
         const script = document.createElement("script");
@@ -221,6 +203,147 @@ const Map = () => {
         }
     };
 
+
+    const insertAllhospital = () => {
+        insertHospital();
+        insertClinic();
+        // navigator.geolocation.getCurrentPosition(
+        //     (position) => {
+        //         const { latitude, longitude } = position.coords;
+
+        //         axios.get(`https://api.sphere.gistda.or.th/services/poi/search?lon=${longitude}&lat=${latitude}&limit=20&tag=โรงพยาบาล,Poly%20Clinic,Public%20Health%20Center&key=test2022`)
+        //             .then(response => {
+        //                 const responseData = response.data.data;
+        //                 responseData.forEach(item => {
+        //                     const lat = item.lat
+        //                     const lon = item.lon
+        //                     const map = sphereMapRef.current;
+
+        //                     var marker = new window.sphere.Marker({ lat: lat, lon: lon },
+        //                         {
+        //                             title: 'Custom Marker',
+        //                             icon: {
+        //                                 html: `
+        //                             <div style="display: flex; align-items: center;">
+        //                             <span style="font-family: 'Prompt';">${item.name}</span>
+        //                             <img src="src/Icon/Marker_Animation.gif" alt="Computer man" style="width:48px;height:48px;">
+        //                             </div>`,
+        //                                 offset: { x: 18, y: 21 }
+        //                             }
+        //                         }
+        //                     );
+        //                     map.Overlays.add(marker);
+        //                     map.goTo({ center: { lat: latitude, lon: longitude }, zoom: 13 });
+        //                 });
+        //             })
+        //     }
+        // );
+    };
+
+
+
+    const insertHospital = () => {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const { latitude, longitude } = position.coords;
+
+                axios.get(`https://api.sphere.gistda.or.th/services/poi/search?lon=${longitude}&lat=${latitude}&limit=20&tag=โรงพยาบาล&key=test2022`)
+                    .then(response => {
+                        const responseData = response.data.data;
+                        responseData.forEach(item => {
+                            const lat = item.lat
+                            const lon = item.lon
+                            const map = sphereMapRef.current;
+
+                            var marker = new window.sphere.Marker({ lat: lat, lon: lon },
+                                {
+                                    title: 'Custom Marker',
+                                    icon: {
+                                        html: `
+                                    <div style="display: flex; align-items: center;">
+                                    <span style="font-family: 'Prompt';">${item.name}</span>
+                                    <img src="src/Icon/Marker_Animation.gif" alt="Computer man" style="width:48px;height:48px;">
+                                    </div>`,
+                                        offset: { x: 18, y: 21 }
+                                    }
+                                }
+                            );
+                            map.Overlays.add(marker);
+                            map.goTo({ center: { lat: latitude, lon: longitude }, zoom: 13 });
+                        });
+                    })
+            }
+        );
+    };
+
+    const insertClinic = () => {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const { latitude, longitude } = position.coords;
+
+                axios.get(`https://api.sphere.gistda.or.th/services/poi/search?lon=${longitude}&lat=${latitude}&limit=20&tag=Poly%20Clinic&key=test2022`)
+                    .then(response => {
+                        const responseData = response.data.data;
+                        responseData.forEach(item => {
+                            const lat = item.lat
+                            const lon = item.lon
+                            const map = sphereMapRef.current;
+
+                            var marker = new window.sphere.Marker({ lat: lat, lon: lon },
+                                {
+                                    title: 'Custom Marker',
+                                    icon: {
+                                        html: `
+                                    <div style="display: flex; align-items: center;">
+                                    <span style="font-family: 'Prompt';">${item.name}</span>
+                                    <img src="src/Icon/Marker_Animation.gif" alt="Computer man" style="width:48px;height:48px;">
+                                    </div>`,
+                                        offset: { x: 18, y: 21 }
+                                    }
+                                }
+                            );
+                            map.Overlays.add(marker);
+                            map.goTo({ center: { lat: latitude, lon: longitude }, zoom: 13 });
+                        });
+                    })
+            }
+        );
+    };
+
+    const insertHealthSt = () => {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const { latitude, longitude } = position.coords;
+
+                axios.get(`https://api.sphere.gistda.or.th/services/poi/search?lon=${longitude}&lat=${latitude}&limit=20&tag=Public%20Health%20Center&key=test2022`)
+                    .then(response => {
+                        const responseData = response.data.data;
+                        responseData.forEach(item => {
+                            const lat = item.lat
+                            const lon = item.lon
+                            const map = sphereMapRef.current;
+
+                            var marker = new window.sphere.Marker({ lat: lat, lon: lon },
+                                {
+                                    title: 'Custom Marker',
+                                    icon: {
+                                        html: `
+                                    <div style="display: flex; align-items: center;">
+                                    <span style="font-family: 'Prompt';">${item.name}</span>
+                                    <img src="src/Icon/Marker_Animation.gif" alt="Computer man" style="width:48px;height:48px;">
+                                    </div>`,
+                                        offset: { x: 18, y: 21 }
+                                    }
+                                }
+                            );
+                            map.Overlays.add(marker);
+                            map.goTo({ center: { lat: latitude, lon: longitude }, zoom: 13 });
+                        });
+                    })
+            }
+        );
+    };
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -233,8 +356,6 @@ const Map = () => {
     const searchRef = useRef(null);
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
-
-    // const [clickedNavigation, setClickedNavigation] = useState(null);
 
     const handleSearchClick = () => {
         const API = 'https://api.sphere.gistda.or.th/services/search/suggest';
@@ -250,11 +371,12 @@ const Map = () => {
             }
         })
             .then(response => {
-                const data = response.data.data;
-                setSuggestions(data);
+                const name = response.data.data;
+                setSuggestions(name);
                 setShowSuggestions(true);
             })
     }
+
 
     const handleClearClick = () => {
         setSuggestions([]);
@@ -282,56 +404,36 @@ const Map = () => {
                     const lon = item.lon
                     const map = sphereMapRef.current;
 
-                    var marker = new window.sphere.Marker({ lat: lat, lon: lon });
+                    var marker = new window.sphere.Marker({ lat: lat, lon: lon },
+                        {
+                            title: 'Custom Marker',
+                            icon: {
+                                html: `
+                                <div style="display: flex; align-items: center;">
+                                <span style="font-family: 'Prompt';">${item.name}</span>
+                                <img src="src/Icon/Marker_Animation.gif" alt="Computer man" style="width:48px;height:48px;">
+                                </div>`,
+                                offset: { x: 18, y: 21 }
+                            }
+                        }
+                    );
                     map.Overlays.add(marker);
-                    // map.Overlays.clear();
                     map.goTo({ center: { lat: lat, lon: lon }, zoom: 13 });
-
-
-                    console.log(lat);
-                    console.log(lon);
                 });
             })
 
 
     };
 
-
-    // const navigate = (event) => {
-    //     const innerHTML = event.currentTarget.innerHTML;
-    //     console.log(`Clicked inner HTML: ${innerHTML}`);
-    //     // Add any additional logic you need here
-    // };
-
-
-    // const naviGation = () => {
-    //     document.getElementById('clear').inner
-
-    //     const API = `ttps://api.sphere.gistda.or.th/services/search/suggest?keyword=${encodedData}&limit=10&sdx=true&key=test2022`;
-    //     const inputValue = searchRef.current.value.trim();
-    //     console.log(inputValue);
-
-    //     axios.get(API, {
-    //         params: {
-    //             keyword: inputValue,
-    //             limit: 10,
-    //             sdx: true,
-    //             key: 'test2022'
-    //         }
-    //     })
-    //         .then(response => {
-    //             const data = response.data.data;
-    //             setSuggestions(data);
-    //             setShowSuggestions(true);
-    //         })
-    // }
-
-
-
-
     ///////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////// Search Bar ///////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    const remove = () => {
+        const map = sphereMapRef.current;
+        map.Overlays.clear();
+    };
 
     const location = () => {
         const map = sphereMapRef.current;
@@ -412,18 +514,93 @@ const Map = () => {
     ///////////////////////////////////////// Geo Tool  ///////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
+    // const actions = [
+    //     { icon: <MedicalServicesIcon />, name: 'สถานพยาบาลทั้งหมด' },
+    //     { icon: <LocalHospitalTwoToneIcon />, name: 'โรงพยาบาล' },
+    //     { icon: <VaccinesTwoToneIcon />, name: 'คลินิก' },
+    //     { icon: <MedicalInformationTwoToneIcon />, name: 'สถานีอนามัย' },
+    // ];
+
 
     return <div id="map" ref={mapRef}
         style={{
             width: "100%",
         }}>
         <>
+
             <div style={{
                 position: 'absolute',
-                right: '1rem',
+                right: '1em',
                 top: '1em',
                 zIndex: '10'
             }}>
+                {/* icon={<MedicalServicesIcon color="#FF6968" />} */}
+                <div className="healthStack">
+                    <Stack className='Stack' sx={{ position: 'absolute', zIndex: 10, top: '0.5rem', right: 420 }}
+                        direction="row" spacing={1}>
+
+                        <Chip
+                            onClick={insertAllhospital}
+                            size="medium"
+                            sx={{
+                                bgcolor: 'white',
+                                color: 'black',
+                                boxShadow: '0px 3.88883px 3.88883px rgba(0, 0, 0, 0.25)',
+                            }}
+                            label="สถานพยาบาลทั้งหมด"
+                        />
+                        <Chip size="medium"
+                            onClick={insertHospital}
+                            sx={{
+                                bgcolor: 'white',
+                                boxShadow: '0px 3.88883px 3.88883px rgba(0, 0, 0, 0.25)'
+                            }}
+                            label="โรงพยาบาล"
+                            icon={
+                                <LocalHospitalIcon
+                                    style={{
+                                        color: 'white',
+                                        borderRadius: '50%',
+                                        padding: '2px',
+                                        backgroundColor: '#FF6968',
+                                    }}
+                                />
+                            }
+                        />
+
+                        <Chip
+                            onClick={insertClinic}
+                            size="medium"
+                            sx={{
+                                bgcolor: 'white',
+                                boxShadow: '0px 3.88883px 3.88883px rgba(0, 0, 0, 0.25)'
+                            }}
+                            icon={<Vaccines
+                                style={{
+                                    color: 'white',
+                                    borderRadius: '50%',
+                                    backgroundColor: '#1DBEB8',
+                                    padding: '2px',
+                                }} />}
+                            label="คลินิก" />
+
+                        <Chip
+                            onClick={insertHealthSt}
+                            size="medium"
+                            sx={{
+                                bgcolor: 'white',
+                                boxShadow: '0px 3.88883px 3.88883px rgba(0, 0, 0, 0.25)'
+                            }}
+                            icon={<MedicalInformation
+                                style={{
+                                    color: 'white',
+                                    borderRadius: '50%',
+                                    backgroundColor: '#2196F3',
+                                    padding: '2px',
+                                }} />}
+                            label="สถานีอนามัย" />
+                    </Stack>
+                </div>
                 <Paper
                     component="form"
                     sx={{
@@ -523,7 +700,7 @@ const Map = () => {
                     </Paper>
                 )}
             </div>
-            <Box className='Box'>
+            <Box className='Box' sx={{ zIndex: '10' }}>
                 <FormGroup
                     sx={{
                         backgroundColor: '#00B2FF',
@@ -683,7 +860,7 @@ const Map = () => {
                         <LayersIcon />
                     </IconButton>
                 </Tooltip>
-                <Popper
+                <Popper className='Basemap'
                     TransitionComponent={Zoom}
                     placement="left"
                     id={id}
@@ -692,13 +869,15 @@ const Map = () => {
                     ref={popperRef}>
                     <Card
                         sx={{
-                            marginRight: '0.5rem',
+                            zIndex: '50',
+                            marginRight: '1.5rem',
                             padding: '0.25rem'
                         }}>
 
 
-                        <div className='Basemap'
+                        <Box
                             style={{
+                                zIndex: '20',
                                 textAlign: 'center',
                                 display: 'flex'
                             }}>
@@ -714,12 +893,17 @@ const Map = () => {
 
                             <CardActionArea
                                 onClick={HybridBase}
-                                className='Sat' style={{ padding: '0.25rem' }}>
+                                className='Sat'
+                                style={{
+                                    padding: '0.25rem',
+                                    zIndex: '999'
+                                }}
+                            >
                                 <img src={Satt} />
                                 <br />
                                 <span>ดาวเทียม</span>
                             </CardActionArea>
-                        </div>
+                        </Box>
                     </Card>
                 </Popper>
 
@@ -743,7 +927,6 @@ const Map = () => {
                         onClick={location}
                         sx={{
                             margin: '0.5rem',
-                            boxShadow: '0px 3.88883px 3.88883px rgba(0, 0, 0, 0.25)',
                             color: 'white',
                             '&:hover': {
                                 color: "#00B2FF",
@@ -751,43 +934,47 @@ const Map = () => {
                         }}
                     >
                         <MyLocationIcon />
-
+                    </IconButton>
+                </Tooltip>
+                <Tooltip
+                    title="ล้างการทำงาน" arrow placement="left"
+                    TransitionComponent={Zoom}
+                    componentsProps={{
+                        tooltip: {
+                            sx: {
+                                color: '#d52d2d',
+                                bgcolor: 'white',
+                                fontFamily: 'Prompt',
+                                '& .MuiTooltip-arrow': {
+                                    color: 'white',
+                                },
+                            },
+                        },
+                    }}
+                >
+                    <IconButton
+                        className="remove"
+                        onClick={remove}
+                        sx={{
+                            top: '1rem',
+                            margin: '0.5rem',
+                            boxShadow: '0px 3.88883px 3.88883px rgba(0, 0, 0, 0.25)',
+                            color: 'white',
+                            '&:hover': {
+                                color: "white",
+                            },
+                        }}
+                    >
+                        <WrongLocationIcon
+                            sx={{
+                                color: '#00B2FF',
+                                '&:hover': { color: "#d52d2d", },
+                            }} />
                     </IconButton>
                 </Tooltip>
             </Box>
         </>
     </div >;
 };
-
-// const grey = {
-//     50: '#F3F6F9',
-//     100: '#E5EAF2',
-//     200: '#DAE2ED',
-//     300: '#C7D0DD',
-//     400: '#B0B8C4',
-//     500: '#9DA8B7',
-//     600: '#6B7A90',
-//     700: '#434D5B',
-//     800: '#303740',
-//     900: '#1C2025',
-// };
-
-// const StyledPopperDiv = styled('div')(
-//     ({ theme }) => css`
-//       background-color: rgba(255, 255, 255, 0.7);
-//       border-radius: 8px;
-//       border: 1px solid ${theme.palette.mode === 'dark' ? grey[700] : grey[200]};
-//       box-shadow: ${theme.palette.mode === 'dark'
-//             ? `0px 4px 8px rgb(0 0 0 / 0.7)`
-//             : `0px 4px 8px rgb(0 0 0 / 0.1)`};
-//       padding: 0.75rem;
-//       color: ${theme.palette.mode === 'dark' ? grey[100] : grey[700]};
-//       font-size: 0.875rem;
-//       font-family: 'IBM Plex Sans', sans-serif;
-//       font-weight: 500;
-//       opacity: 1;
-//       margin: 0.25rem 0;
-//     `,
-// );
 
 export default Map;
