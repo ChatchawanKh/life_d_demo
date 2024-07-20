@@ -4,7 +4,7 @@ import "./Map.css"
 // import { styled, css } from '@mui/system';
 
 //Mui infra
-import { List, ListItemButton, Box, Chip, Stack, Button } from "@mui/material";
+import { List, ListItemButton, Box, Chip, Stack } from "@mui/material";
 import Zoom from '@mui/material/Zoom';
 import Tooltip from '@mui/material/Tooltip';
 import { Popper } from '@mui/base/Popper';
@@ -34,7 +34,7 @@ import Street from '/src/Icon/street.svg'
 import Satt from '/src/Icon/satt.svg'
 import ClearIcon from '@mui/icons-material/Clear';
 import WrongLocationIcon from '@mui/icons-material/WrongLocation';
-import { Filter } from "@mui/icons-material";
+// import { Filter } from "@mui/icons-material";
 // import Marker from 'src/Icon/Marker_Animation.gif'
 // import { response } from "express";
 
@@ -203,46 +203,19 @@ const Map = () => {
         }
     };
 
-
     const insertAllhospital = () => {
+
+        const map = sphereMapRef.current;
+        map.Overlays.clear();
         insertHospital();
         insertClinic();
-        // navigator.geolocation.getCurrentPosition(
-        //     (position) => {
-        //         const { latitude, longitude } = position.coords;
-
-        //         axios.get(`https://api.sphere.gistda.or.th/services/poi/search?lon=${longitude}&lat=${latitude}&limit=20&tag=โรงพยาบาล,Poly%20Clinic,Public%20Health%20Center&key=test2022`)
-        //             .then(response => {
-        //                 const responseData = response.data.data;
-        //                 responseData.forEach(item => {
-        //                     const lat = item.lat
-        //                     const lon = item.lon
-        //                     const map = sphereMapRef.current;
-
-        //                     var marker = new window.sphere.Marker({ lat: lat, lon: lon },
-        //                         {
-        //                             title: 'Custom Marker',
-        //                             icon: {
-        //                                 html: `
-        //                             <div style="display: flex; align-items: center;">
-        //                             <span style="font-family: 'Prompt';">${item.name}</span>
-        //                             <img src="src/Icon/Marker_Animation.gif" alt="Computer man" style="width:48px;height:48px;">
-        //                             </div>`,
-        //                                 offset: { x: 18, y: 21 }
-        //                             }
-        //                         }
-        //                     );
-        //                     map.Overlays.add(marker);
-        //                     map.goTo({ center: { lat: latitude, lon: longitude }, zoom: 13 });
-        //                 });
-        //             })
-        //     }
-        // );
+        insertHealthSt();
     };
 
-
-
     const insertHospital = () => {
+        const map = sphereMapRef.current;
+        map.Overlays.clear();
+
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 const { latitude, longitude } = position.coords;
@@ -277,6 +250,8 @@ const Map = () => {
     };
 
     const insertClinic = () => {
+        const map = sphereMapRef.current;
+        map.Overlays.clear();
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 const { latitude, longitude } = position.coords;
@@ -311,6 +286,8 @@ const Map = () => {
     };
 
     const insertHealthSt = () => {
+        const map = sphereMapRef.current;
+        map.Overlays.clear();
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 const { latitude, longitude } = position.coords;
@@ -343,6 +320,7 @@ const Map = () => {
             }
         );
     };
+
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -385,7 +363,6 @@ const Map = () => {
     };
 
     const navigate = (itemName) => {
-        console.log(`${itemName}`);
         const loc = `${itemName}`
         const API = 'https://api.sphere.gistda.or.th/services/search/search?';
 
@@ -510,17 +487,10 @@ const Map = () => {
 
     const open = Boolean(anchorEl);
     const id = open ? 'simple-popper' : undefined;
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////// Geo Tool  ///////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
-
-    // const actions = [
-    //     { icon: <MedicalServicesIcon />, name: 'สถานพยาบาลทั้งหมด' },
-    //     { icon: <LocalHospitalTwoToneIcon />, name: 'โรงพยาบาล' },
-    //     { icon: <VaccinesTwoToneIcon />, name: 'คลินิก' },
-    //     { icon: <MedicalInformationTwoToneIcon />, name: 'สถานีอนามัย' },
-    // ];
-
 
     return <div id="map" ref={mapRef}
         style={{
@@ -534,7 +504,6 @@ const Map = () => {
                 top: '1em',
                 zIndex: '10'
             }}>
-                {/* icon={<MedicalServicesIcon color="#FF6968" />} */}
                 <div className="healthStack">
                     <Stack className='Stack' sx={{ position: 'absolute', zIndex: 10, top: '0.5rem', right: 420 }}
                         direction="row" spacing={1}>
@@ -936,6 +905,7 @@ const Map = () => {
                         <MyLocationIcon />
                     </IconButton>
                 </Tooltip>
+
                 <Tooltip
                     title="ล้างการทำงาน" arrow placement="left"
                     TransitionComponent={Zoom}
@@ -956,19 +926,20 @@ const Map = () => {
                         className="remove"
                         onClick={remove}
                         sx={{
-                            top: '1rem',
                             margin: '0.5rem',
                             boxShadow: '0px 3.88883px 3.88883px rgba(0, 0, 0, 0.25)',
                             color: 'white',
                             '&:hover': {
                                 color: "white",
+                                '.MuiSvgIcon-root': {
+                                    color: '#d52d2d',
+                                },
                             },
                         }}
                     >
                         <WrongLocationIcon
                             sx={{
-                                color: '#00B2FF',
-                                '&:hover': { color: "#d52d2d", },
+                                color: '#00B2FF'
                             }} />
                     </IconButton>
                 </Tooltip>
