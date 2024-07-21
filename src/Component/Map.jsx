@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from 'axios';
 import "./Map.css"
+import { renderToString } from 'react-dom/server';
 // import { styled, css } from '@mui/system';
 
 //Mui infra
-import { List, ListItemButton, Box, Chip, Stack } from "@mui/material";
+import { List, ListItemButton, Box, Chip, Stack, Typography, CardContent, CardActions, Button } from "@mui/material";
 import Zoom from '@mui/material/Zoom';
 import Tooltip from '@mui/material/Tooltip';
 import { Popper } from '@mui/base/Popper';
@@ -228,14 +229,22 @@ const Map = () => {
                             const lon = item.lon
                             const map = sphereMapRef.current;
 
+                            const iconHtml = renderToString(<LocalHospitalIcon
+                                style={{
+                                    color: 'white',
+                                    borderRadius: '50%',
+                                    padding: '2px',
+                                    backgroundColor: '#FF6968',
+                                }}
+                            />);
+
                             var marker = new window.sphere.Marker({ lat: lat, lon: lon },
                                 {
                                     title: 'Custom Marker',
                                     icon: {
                                         html: `
-                                    <div style="display: flex; align-items: center;">
-                                    <span style="font-family: 'Prompt';">${item.name}</span>
-                                    <img src="src/Icon/Marker_Animation.gif" alt="Computer man" style="width:48px;height:48px;">
+                                    <div>
+                                    ${iconHtml}
                                     </div>`,
                                         offset: { x: 18, y: 21 }
                                     }
@@ -264,14 +273,23 @@ const Map = () => {
                             const lon = item.lon
                             const map = sphereMapRef.current;
 
+                            const iconHtml = renderToString(<Vaccines
+                                style={{
+                                    color: 'white',
+                                    borderRadius: '50%',
+                                    backgroundColor: '#1DBEB8',
+                                    padding: '2px',
+                                }} />
+
+                            );
+
                             var marker = new window.sphere.Marker({ lat: lat, lon: lon },
                                 {
                                     title: 'Custom Marker',
                                     icon: {
                                         html: `
-                                    <div style="display: flex; align-items: center;">
-                                    <span style="font-family: 'Prompt';">${item.name}</span>
-                                    <img src="src/Icon/Marker_Animation.gif" alt="Computer man" style="width:48px;height:48px;">
+                                    <div>
+                                    ${iconHtml}
                                     </div>`,
                                         offset: { x: 18, y: 21 }
                                     }
@@ -288,6 +306,7 @@ const Map = () => {
     const insertHealthSt = () => {
         const map = sphereMapRef.current;
         map.Overlays.clear();
+
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 const { latitude, longitude } = position.coords;
@@ -295,31 +314,98 @@ const Map = () => {
                 axios.get(`https://api.sphere.gistda.or.th/services/poi/search?lon=${longitude}&lat=${latitude}&limit=20&tag=Public%20Health%20Center&key=test2022`)
                     .then(response => {
                         const responseData = response.data.data;
-                        responseData.forEach(item => {
-                            const lat = item.lat
-                            const lon = item.lon
-                            const map = sphereMapRef.current;
+                        console.log(responseData);
 
-                            var marker = new window.sphere.Marker({ lat: lat, lon: lon },
+                        responseData.forEach(item => {
+                            const { lat, lon, name, address, tel } = item;
+
+                            const iconHtml = renderToString(
+                                <MedicalInformation
+                                    style={{
+                                        color: 'white',
+                                        borderRadius: '50%',
+                                        backgroundColor: '#2196F3',
+                                        padding: '2px',
+                                    }}
+                                />
+                            );
+
+                            const cardHtml = renderToString(
+                                <CardContent>
+                                    <Typography gutterBottom variant="h5" component="div">
+                                        {name}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        {address}
+                                    </Typography>
+                                    <Typography variant="body2" component="div" style={{ color: 'blue' }}>
+                                        {tel}
+                                    </Typography>
+                                    <CardActions>
+                                        <Button size="small" color="primary">
+                                            WHERE
+                                        </Button>
+                                        <Button size="small" color="primary">
+                                            Apple Map
+                                        </Button>
+                                        <Button size="small" color="primary">
+                                            Google Map
+                                        </Button>
+                                    </CardActions>
+                                </CardContent>
+                            );
+
+                            const markerHtml = `
+                                    <style>
+                                        .marker-container {
+                                        position: relative;
+                                        display: inline-block;
+                                        }
+
+                                        .hover-card {
+                                        visibility: hidden;
+                                        width: 350px;
+                                        background-color: white;
+                                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                                        left: 50%;
+                                        transform: translateX(-50%);
+                                        padding: 10px;
+                                        border-radius: 5px;
+                                        }
+
+                                        .marker-container:hover .hover-card {
+                                        visibility: visible;
+                                        }
+                                    </style>
+
+                                    <div class='marker-container'>
+                                        <div class='hover-card'>
+                                        ${cardHtml}
+                                        </div>
+                                        <div class='marker-icon'>
+                                        ${iconHtml}
+                                        </div>
+                                    </div>
+                                    `;
+
+                            const marker = new window.sphere.Marker({ lat, lon },
                                 {
-                                    title: 'Custom Marker',
                                     icon: {
-                                        html: `
-                                    <div style="display: flex; align-items: center;">
-                                    <span style="font-family: 'Prompt';">${item.name}</span>
-                                    <img src="src/Icon/Marker_Animation.gif" alt="Computer man" style="width:48px;height:48px;">
-                                    </div>`,
+                                        html: markerHtml,
                                         offset: { x: 18, y: 21 }
                                     }
                                 }
                             );
+
                             map.Overlays.add(marker);
-                            map.goTo({ center: { lat: latitude, lon: longitude }, zoom: 13 });
                         });
+
+                        map.goTo({ center: { lat: latitude, lon: longitude }, zoom: 13 });
                     })
             }
         );
     };
+
 
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
