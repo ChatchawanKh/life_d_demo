@@ -14,6 +14,7 @@ import { CardActionArea } from '@mui/material';
 import Paper from '@mui/material/Paper';
 import InputBase from '@mui/material/InputBase';
 import SearchIcon from '@mui/icons-material/Search';
+import PhoneIcon from '@mui/icons-material/Phone';
 
 
 // import { red } from '@mui/material/colors';
@@ -35,9 +36,9 @@ import Street from '/src/Icon/street.svg'
 import Satt from '/src/Icon/satt.svg'
 import ClearIcon from '@mui/icons-material/Clear';
 import WrongLocationIcon from '@mui/icons-material/WrongLocation';
-// import { Filter } from "@mui/icons-material";
-// import Marker from 'src/Icon/Marker_Animation.gif'
-// import { response } from "express";
+
+import GoogleIcon from '@mui/icons-material/Google';
+import { AlignVerticalCenter } from "@mui/icons-material";
 
 
 const Map = () => {
@@ -314,94 +315,164 @@ const Map = () => {
                 axios.get(`https://api.sphere.gistda.or.th/services/poi/search?lon=${longitude}&lat=${latitude}&limit=20&tag=Public%20Health%20Center&key=test2022`)
                     .then(response => {
                         const responseData = response.data.data;
-                        console.log(responseData);
 
                         responseData.forEach(item => {
                             const { lat, lon, name, address, tel } = item;
 
-                            const iconHtml = renderToString(
-                                <MedicalInformation
-                                    style={{
-                                        color: 'white',
-                                        borderRadius: '50%',
-                                        backgroundColor: '#2196F3',
-                                        padding: '2px',
-                                    }}
-                                />
-                            );
+                            return axios.get(`https://api.sphere.gistda.or.th/services/route/route?flon=${longitude}&flat=${latitude}&tlon=${lon}&tlat=${lat}&mode=d&key=test2022`)
+                                .then(response => {
+                                    const distance = response.data.data.distance;
 
-                            const cardHtml = renderToString(
-                                <CardContent>
-                                    <Typography gutterBottom variant="h5" component="div">
-                                        {name}
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                        {address}
-                                    </Typography>
-                                    <Typography variant="body2" component="div" style={{ color: 'blue' }}>
-                                        {tel}
-                                    </Typography>
-                                    <CardActions>
-                                        <Button size="small" color="primary">
-                                            WHERE
-                                        </Button>
-                                        <Button size="small" color="primary">
-                                            Apple Map
-                                        </Button>
-                                        <Button size="small" color="primary">
-                                            Google Map
-                                        </Button>
-                                    </CardActions>
-                                </CardContent>
-                            );
+                                    const googleMapUrl = `https://www.google.com/maps/dir/${latitude},${longitude}/
+                                    ${lat},${lon}/@${lat},${lon},8z/data=!3m2!1e3!4b1!4m2!4m1!3e0`;
 
-                            const markerHtml = `
+                                    const whereMapUrl = `https://where.gistda.or.th/route?dir=${latitude}-${longitude},
+                                    ${lat}-${lon}&result=true&swipe=1`
+
+                                    const cardHtml = renderToString(
+                                        <CardContent spacing={1} style={{ zIndex: '9999' }}>
+                                            <Typography component="div">
+                                                <Box
+                                                    style={{
+                                                        fontWeight: 'bold',
+                                                        margin: 1
+                                                    }}
+                                                >
+                                                    {name}
+                                                </Box>
+                                                <Box
+                                                    style={{
+                                                        fontWeight: 'light',
+                                                        margin: 1
+                                                    }}
+                                                >
+                                                    {address}
+                                                </Box>
+                                                <Box
+                                                    style={{
+                                                        fontWeight: 'light',
+                                                        margin: 1,
+                                                        color: '#8DBAFF',
+                                                        AlignVerticalCenter
+                                                    }}
+                                                >
+                                                    {tel && (
+                                                        <>
+                                                            <PhoneIcon style={{ color: '#8DBAFF' }} />
+                                                            &nbsp;{tel}
+                                                        </>
+                                                    )}
+                                                </Box>
+                                                <Box
+                                                    style={{
+                                                        fontWeight: 'light',
+                                                        margin: 1
+                                                    }}
+                                                >
+                                                    {distance} เมตร
+                                                </Box>
+                                            </Typography>
+                                            <CardActions>
+                                                <Box>
+                                                    <Button href={whereMapUrl} target="_blank" style={{ AlignVerticalCenter }}>
+                                                        <GoogleIcon
+                                                            style={{
+                                                                color: 'white',
+                                                                borderRadius: '50%',
+                                                                padding: '2px',
+                                                                backgroundColor: '#FF6968',
+                                                            }}
+                                                        />WHERE Gistda
+                                                    </Button>
+                                                </Box>
+                                                <Box>
+                                                    <Button href={googleMapUrl} target="_blank">
+                                                        <GoogleIcon
+                                                            style={{
+                                                                color: 'white',
+                                                                borderRadius: '50%',
+                                                                padding: '2px',
+                                                                backgroundColor: '#FF6968',
+                                                            }}
+                                                        />Google Map
+                                                    </Button>
+                                                </Box>
+                                            </CardActions>
+                                        </CardContent>
+                                    );
+
+                                    const iconHtml = renderToString(
+                                        <MedicalInformation
+                                            style={{
+                                                color: 'white',
+                                                borderRadius: '50%',
+                                                backgroundColor: '#2196F3',
+                                                padding: '2px',
+                                                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+                                            }}
+                                        />
+                                    );
+
+
+
+                                    const markerHtml = `
                                     <style>
                                         .marker-container {
                                         position: relative;
                                         display: inline-block;
+                                        position: absolute;
+                                        z-index: 20;
                                         }
 
                                         .hover-card {
+                                        z-index: 100;
+                                        bottom: 5px;
+                                        position: fixed;
+                                        z-index: 25;
                                         visibility: hidden;
-                                        width: 350px;
+                                        display: flex;
                                         background-color: white;
                                         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
                                         left: 50%;
                                         transform: translateX(-50%);
                                         padding: 10px;
                                         border-radius: 5px;
+                                        white-space: nowrap;
+                                        transition: 0.25s ease;
                                         }
 
                                         .marker-container:hover .hover-card {
                                         visibility: visible;
                                         }
+
+                                        .marker-icon:hover {
+                                        transform: scale(1.5);
+                                        }
                                     </style>
 
                                     <div class='marker-container'>
-                                        <div class='hover-card'>
+                                        <div class='hover-card' style="z-index: 1000">
                                         ${cardHtml}
                                         </div>
-                                        <div class='marker-icon'>
+                                        <div class='marker-icon' style=":hover">
                                         ${iconHtml}
                                         </div>
                                     </div>
                                     `;
 
-                            const marker = new window.sphere.Marker({ lat, lon },
-                                {
-                                    icon: {
-                                        html: markerHtml,
-                                        offset: { x: 18, y: 21 }
-                                    }
-                                }
-                            );
-
-                            map.Overlays.add(marker);
+                                    const marker = new window.sphere.Marker({ lat, lon },
+                                        {
+                                            icon: {
+                                                html: markerHtml,
+                                                offset: { x: 18, y: 21 }
+                                            }
+                                        }
+                                    );
+                                    map.Overlays.add(marker);
+                                });
                         });
-
-                        map.goTo({ center: { lat: latitude, lon: longitude }, zoom: 13 });
-                    })
+                    });
+                map.goTo({ center: { lat: latitude, lon: longitude }, zoom: 13 });
             }
         );
     };
