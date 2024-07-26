@@ -15,6 +15,7 @@ import Paper from '@mui/material/Paper';
 import InputBase from '@mui/material/InputBase';
 import SearchIcon from '@mui/icons-material/Search';
 import PhoneIcon from '@mui/icons-material/Phone';
+import StraightenIcon from '@mui/icons-material/Straighten';
 
 
 // import { red } from '@mui/material/colors';
@@ -36,10 +37,7 @@ import Street from '/src/Icon/street.svg'
 import Satt from '/src/Icon/satt.svg'
 import ClearIcon from '@mui/icons-material/Clear';
 import WrongLocationIcon from '@mui/icons-material/WrongLocation';
-
 import GoogleIcon from '@mui/icons-material/Google';
-import { AlignVerticalCenter } from "@mui/icons-material";
-
 
 const Map = () => {
     const mapRef = useRef(null);
@@ -319,6 +317,9 @@ const Map = () => {
                         responseData.forEach(item => {
                             const { lat, lon, name, address, tel } = item;
 
+                            // const firstNumber = tel.match(/\d+/)?.[0] || '';
+
+
                             return axios.get(`https://api.sphere.gistda.or.th/services/route/route?flon=${longitude}&flat=${latitude}&tlon=${lon}&tlat=${lat}&mode=d&key=test2022`)
                                 .then(response => {
                                     const distance = response.data.data.distance;
@@ -330,7 +331,22 @@ const Map = () => {
                                     ${lat}-${lon}&result=true&swipe=1`
 
                                     const cardHtml = renderToString(
-                                        <CardContent spacing={1} style={{ zIndex: '9999' }}>
+                                        <CardContent
+                                            spacing={1}
+                                            style={{
+                                                position: 'absolute',
+                                                // zIndex: 9999,
+                                                left: '50%',
+                                                transform: 'translateX(-50%)',
+                                                transition: 'opacity 0.3s',
+                                                display: 'flex',
+                                                whiteSpace: 'nowrap',
+                                                borderRadius: '5px',
+                                                padding: '20px',
+                                                backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                                                border: '2px solid #8DBAFF',
+                                            }}
+                                        >
                                             <Typography component="div">
                                                 <Box
                                                     style={{
@@ -349,17 +365,21 @@ const Map = () => {
                                                     {address}
                                                 </Box>
                                                 <Box
-                                                    style={{
+                                                    sx={{
                                                         fontWeight: 'light',
-                                                        margin: 1,
+                                                        m: 1,
                                                         color: '#8DBAFF',
-                                                        AlignVerticalCenter
+                                                        verticalAlign: 'middle',
+                                                        WebkitLineClamp: 1,
+                                                        WebkitBoxOrient: 'vertical',
+                                                        overflow: 'hidden'
                                                     }}
                                                 >
                                                     {tel && (
                                                         <>
-                                                            <PhoneIcon style={{ color: '#8DBAFF' }} />
-                                                            &nbsp;{tel}
+                                                            <PhoneIcon style={{ color: '#8DBAFF', width: '20px', verticalAlign: 'middle' }} />
+                                                            &nbsp;{tel}<br />
+                                                            {/* <a>ดูเพิ่มเติม</a> */}
                                                         </>
                                                     )}
                                                 </Box>
@@ -369,39 +389,73 @@ const Map = () => {
                                                         margin: 1
                                                     }}
                                                 >
-                                                    {distance} เมตร
+                                                    <StraightenIcon style={{ color: '#8DBAFF', width: '20px', verticalAlign: 'middle' }} />
+                                                    &nbsp;{(distance / 1000).toFixed(2)} กิโลเมตร
                                                 </Box>
+                                                <CardActions style={{ display: 'flex', }}>
+                                                    <Box style={{
+                                                        display: 'flex',
+                                                        margin: '5px'
+                                                    }}>
+                                                        <Button href={whereMapUrl} target="_blank"
+                                                            style={{
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                maxWidth: '180px',
+                                                                height: '20px',
+                                                                padding: '0.5rem',
+                                                                borderRadius: '15px',
+                                                                backgroundColor: 'white',
+                                                                boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25), inset -4px -4px 4px rgba(197, 197, 197, 0.25)',
+                                                                textDecoration: 'none'
+                                                            }}>
+                                                            <img
+                                                                src="https://where.gistda.or.th/favicon.ico"
+                                                                alt="Favicon"
+                                                                style={{
+                                                                    width: '1.5em',
+                                                                    borderRadius: '50%',
+                                                                    padding: '2px',
+                                                                    boxShadow: 'inset 4px 4px 4px rgba(255, 255, 255, 0.7)'
+                                                                }}
+                                                            /><span style={{ margin: '10px', color: '#5686E1' }}>WHERE</span>
+                                                        </Button>
+                                                    </Box>
+                                                    <Box style={{
+                                                        // AlignVerticalCenter,
+                                                        display: 'flex',
+                                                        margin: '5px'
+                                                    }}>
+                                                        <Button href={googleMapUrl} target="_blank"
+                                                            style={{
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                maxWidth: '180px',
+                                                                height: '20px',
+                                                                padding: '0.5rem',
+                                                                borderRadius: '15px',
+                                                                backgroundColor: 'white',
+                                                                boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25), inset -4px -4px 4px rgba(197, 197, 197, 0.25)',
+                                                                textDecoration: 'none'
+                                                            }}>
+                                                            <GoogleIcon
+                                                                style={{
+                                                                    color: 'white',
+                                                                    borderRadius: '50%',
+                                                                    padding: '2px',
+                                                                    backgroundColor: '#5686E1',
+                                                                    boxShadow: 'inset 4px 4px 4px rgba(255, 255, 255, 0.7)'
+                                                                }}
+                                                            /><span style={{ margin: '10px', color: '#5686E1' }}>Google Map</span>
+                                                        </Button>
+                                                    </Box>
+                                                </CardActions>
                                             </Typography>
-                                            <CardActions>
-                                                <Box>
-                                                    <Button href={whereMapUrl} target="_blank" style={{ AlignVerticalCenter }}>
-                                                        <GoogleIcon
-                                                            style={{
-                                                                color: 'white',
-                                                                borderRadius: '50%',
-                                                                padding: '2px',
-                                                                backgroundColor: '#FF6968',
-                                                            }}
-                                                        />WHERE Gistda
-                                                    </Button>
-                                                </Box>
-                                                <Box>
-                                                    <Button href={googleMapUrl} target="_blank">
-                                                        <GoogleIcon
-                                                            style={{
-                                                                color: 'white',
-                                                                borderRadius: '50%',
-                                                                padding: '2px',
-                                                                backgroundColor: '#FF6968',
-                                                            }}
-                                                        />Google Map
-                                                    </Button>
-                                                </Box>
-                                            </CardActions>
                                         </CardContent>
                                     );
 
                                     const iconHtml = renderToString(
+
                                         <MedicalInformation
                                             style={{
                                                 color: 'white',
@@ -414,61 +468,46 @@ const Map = () => {
                                     );
 
 
-
                                     const markerHtml = `
-                                    <style>
-                                        .marker-container {
-                                        position: relative;
-                                        display: inline-block;
-                                        position: absolute;
-                                        z-index: 20;
-                                        }
+                                            
+                                            <div class="marker" >
+                                                <div class="hover-card" style="position: absolute; z-index: 99; background-color: #000000">
+                                                    ${cardHtml}
+                                                </div>
+                                                <div class="marker-icon" >
+                                                    ${iconHtml}
+                                                </div>
+                                            </div>
+                                        `;
 
-                                        .hover-card {
-                                        z-index: 100;
-                                        bottom: 5px;
-                                        position: fixed;
-                                        z-index: 25;
-                                        visibility: hidden;
-                                        display: flex;
-                                        background-color: white;
-                                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-                                        left: 50%;
-                                        transform: translateX(-50%);
-                                        padding: 10px;
-                                        border-radius: 5px;
-                                        white-space: nowrap;
-                                        transition: 0.25s ease;
-                                        }
-
-                                        .marker-container:hover .hover-card {
-                                        visibility: visible;
-                                        }
-
-                                        .marker-icon:hover {
-                                        transform: scale(1.5);
-                                        }
-                                    </style>
-
-                                    <div class='marker-container'>
-                                        <div class='hover-card' style="z-index: 1000">
-                                        ${cardHtml}
-                                        </div>
-                                        <div class='marker-icon' style=":hover">
-                                        ${iconHtml}
-                                        </div>
-                                    </div>
-                                    `;
-
-                                    const marker = new window.sphere.Marker({ lat, lon },
+                                    const marker = new window.sphere.Marker(
+                                        { lat, lon },
                                         {
                                             icon: {
                                                 html: markerHtml,
                                                 offset: { x: 18, y: 21 }
-                                            }
+                                            },
+                                            // popup: {
+                                            //     html: cardHtml
+                                            // }
                                         }
                                     );
-                                    map.Overlays.add(marker);
+                                    map.Overlays.add(marker)
+
+                                    document.querySelectorAll('.marker').forEach(marker => {
+                                        marker.addEventListener('mouseover', () => {
+                                            document.querySelectorAll('.hover-card').forEach(card => {
+                                                card.style.display = 'none'; // Hide all other popups
+                                                card.style.zIndex = 9999
+                                            });
+                                            marker.querySelector('.hover-card').style.display = 'block'; // Show the current popup
+                                        });
+
+                                        marker.addEventListener('mouseout', () => {
+                                            marker.querySelector('.hover-card').style.display = 'none'; // Hide popup on mouse out
+                                        });
+                                    });
+
                                 });
                         });
                     });

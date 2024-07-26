@@ -43,13 +43,19 @@ html {
   z-index: 12;
 }
 
-/* .css-wfnhn0-MuiChip-root,
-.MuiChip-icon {
-  margin-left: 4px;
-  margin-right: -4px;
-  font-size: 18px;
-  color: white;
-} */
+.hover-card {
+  display: none;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: opacity 0.3s;
+  opacity: 0;
+}
+
+.marker:hover .hover-card {
+  display: block;
+  opacity: 1;
+}
 
 
 
