@@ -43,19 +43,38 @@ html {
   z-index: 12;
 }
 
-.hover-card {
-  display: none;
-  top: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  transition: opacity 0.3s;
-  opacity: 0;
+/* .sphere-popup_detail .maplibregl-popup-close-button, 
+.mapboxgl-popup-close-button {
+  background-image: url('./Icon/legend.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  width: 50px;
+  border: none;
+  outline: none;
+} */
+
+
+/* CSS */
+/* .maplibregl-popup-close-button {
+  background-image: url('./Icon/legend.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border: none;
+  width: 30px;
+  height: 30px;
+  text-indent: -9999px;
 }
 
-.marker:hover .hover-card {
-  display: block;
-  opacity: 1;
-}
+.maplibregl-popup-close-button:focus {
+  outline: none;
+} */
+
+
+
+
+
+
 
 
 

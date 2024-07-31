@@ -28,7 +28,8 @@ import IconButton from '@mui/material/IconButton';
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
-import WhereToVoteIcon from '@mui/icons-material/WhereToVote';
+// import WhereToVoteIcon from '@mui/icons-material/WhereToVote';
+import CircularProgress from '@mui/material/CircularProgress';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
 import LayersIcon from '@mui/icons-material/Layers';
 import AddIcon from '@mui/icons-material/Add';
@@ -180,12 +181,11 @@ const Map = () => {
 
     const handlePM25Toggle = (event) => {
         setIsPM25Checked(event.target.checked);
-        // var sphere = window.sphere
+        const sphere = window.sphere;
+        const map = sphereMapRef.current;
 
         if (event.target.checked) {
-            // eslint-disable-next-line no-undef
-            let pm25wms = new sphere.Layer('0', {
-                // eslint-disable-next-line no-undef
+            const pm25wms = new sphere.Layer('0', {
                 type: sphere.LayerType.WMS,
                 url: "https://service-proxy-765rkyfg3q-as.a.run.app/api_geoserver/geoserver/pm25_hourly_raster_24hr/wms",
                 zoomRange: { min: 1, max: 15 },
@@ -193,11 +193,119 @@ const Map = () => {
                 opacity: 1,
                 id: 'layer_24pm25'
             });
-            sphereMapRef.current.Layers.add(pm25wms);
+            map.Layers.add(pm25wms);
             setPm25wmsLayer(pm25wms);
+
+            map.Event.bind(sphere.EventName.Click, function (location) {
+                // console.log(location);
+
+                // Assuming location has lat and lon properties
+                var lat = location.lat;
+                var lon = location.lon;
+
+                axios.get(`https://pm25.gistda.or.th/rest/getPm25byLocation?lat=${lat}&lng=${lon}`)
+                    .then(response => {
+                        const data = response.data.data
+                        const tb = data.loc['tb_tn']
+                        const ap = data.loc['ap_tn']
+
+                        const pv = data.loc['pv_tn']
+
+                        const pm25 = data['pm25']
+
+                        // update sect
+                        const date = data.datetimeThai['dateThai']
+                        const time = data.datetimeThai['timeThai']
+
+                        ///////////////////////////////////////////////////////////////////////////////////////////////
+                        ///////////////////////////////////////// Text Color  /////////////////////////////////////////
+                        ///////////////////////////////////////////////////////////////////////////////////////////////
+                        let color;
+                        if (pm25 < 15) {
+                            color = '#4FAFBF'; // Very Good air quality
+                        } else if (pm25 > 15 && pm25 <= 25) {
+                            color = '#9FCF62';
+                        } else if (pm25 > 25 && pm25 <= 37.5) {
+                            color = '#F1E151'; // Good
+                        } else if (pm25 > 37.5 && pm25 <= 75) {
+                            color = '#F1A53B'; // Moderate
+                        } else {
+                            color = '#EB4E47'; // Unhealthy for sensitive group
+                        }
+
+                        let level;
+                        if (pm25 < 15) {
+                            level = 'ดีมาก'; // Very Good air quality
+                        } else if (pm25 > 15 && pm25 <= 25) {
+                            level = 'ดี';
+                        } else if (pm25 > 25 && pm25 <= 37.5) {
+                            level = 'ปานกลาง'; // Good
+                        } else if (pm25 > 37.5 && pm25 <= 75) {
+                            level = 'เริ่มมีผล'; // Moderate
+                        } else {
+                            level = 'มีผล'; // Unhealthy for sensitive group
+                        }
+                        ///////////////////////////////////////////////////////////////////////////////////////////////
+                        ///////////////////////////////////////// Text Color  /////////////////////////////////////////
+                        ///////////////////////////////////////////////////////////////////////////////////////////////
+
+                        const pm25Formatted = pm25.toFixed(2);
+
+                        const loadingHtml = `
+                                    <div style="display: flex; align-items: center; justify-content: center; padding: 16px;">
+                                        <div style="border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #3498db; width: 24px; height: 24px; animation: spin 1s linear infinite; margin-right: 8px;"></div>
+                                        <span style="font-size: 14px;">กำลังค้นหาข้อมูล...</span>
+                                    </div>
+                                    <style>
+                                        @keyframes spin {
+                                            0% { transform: rotate(0deg); }
+                                            100% { transform: rotate(360deg); }
+                                        }
+                                    </style>
+                                `;
+
+                        const popupDetail = `
+                                <div style="padding:0.5rem;">
+                                    <span id="location" style="font-size: 16px; font-weight: bold;">${tb} ${ap} ${pv}</span><br />
+                                    <span style="font-size: 14px;">สภาพอากาศวันนี้</span><br />
+                                    <span style="font-size: 12px;">ค่า PM2.5</span><br />
+                                    <span id='value' style={{ fontWeight: 'bold', fontSize: '30px' }}><span style="color: ${color}; font-weight: bold; font-size: 30px;">${pm25Formatted} </span></span>
+                                    <span style="font-size: 10px;">µg./m3</span>
+                                    <span id="level"><span style="color: ${color}; font-weight: bold; font-size: 30px;"> ${level}</span><br />
+                                    <span id="update" style="font-size: 12px; color: #a6a6a6;">อัพเดทล่าสุด ${date} ${time}</span>
+                                </div>
+                            `;
+
+                        var popUp = new sphere.Popup({ lon: lon, lat: lat }, {
+                            title: `
+                                <span style='font-weight: 500; margin-left: 0.5rem;'> ตำแหน่งที่สนใจ</span>
+                                <span style='font-weight: 400; color: #a6a6a6;'>
+                                    ${lat.toFixed(4)}, ${lon.toFixed(4)} (Lat, Lon)
+                                </span>
+                            `
+                            ,
+                            detail: loadingHtml,
+                            loadDetail: updateDetail,
+                            size: { width: '100%' },
+                            closable: true
+                        });
+
+                        function updateDetail(element) {
+                            setTimeout(function () {
+                                element.innerHTML = popupDetail;
+                            }, 1000);
+                        }
+
+
+                        map.Overlays.add(popUp);
+
+                    });
+
+            });
+
         } else {
             if (pm25wmsLayer) {
-                sphereMapRef.current.Layers.remove(pm25wmsLayer);
+                map.Layers.remove(pm25wmsLayer);
                 setPm25wmsLayer(null);
             }
         }
@@ -212,309 +320,715 @@ const Map = () => {
         insertHealthSt();
     };
 
-    const insertHospital = () => {
+    // const insertHospital = () => {
+    //     const map = sphereMapRef.current;
+    //     map.Overlays.clear();
+
+    //     navigator.geolocation.getCurrentPosition(
+    //         (position) => {
+    //             const { latitude, longitude } = position.coords;
+
+    //             axios.get(`https://api.sphere.gistda.or.th/services/poi/search?lon=${longitude}&lat=${latitude}&limit=20&tag=โรงพยาบาล&key=test2022`)
+    //                 .then(response => {
+    //                     const responseData = response.data.data;
+    //                     responseData.forEach(item => {
+    //                         const lat = item.lat
+    //                         const lon = item.lon
+    //                         const map = sphereMapRef.current;
+
+    //                         const iconHtml = renderToString(<LocalHospitalIcon
+    //                             style={{
+    //                                 color: 'white',
+    //                                 borderRadius: '50%',
+    //                                 padding: '2px',
+    //                                 backgroundColor: '#FF6968',
+    //                             }}
+    //                         />);
+
+    //                         var marker = new window.sphere.Marker({ lat: lat, lon: lon },
+    //                             {
+    //                                 title: 'Custom Marker',
+    //                                 icon: {
+    //                                     html: `
+    //                                 <div>
+    //                                 ${iconHtml}
+    //                                 </div>`,
+    //                                     offset: { x: 18, y: 21 }
+    //                                 }
+    //                             }
+    //                         );
+    //                         map.Overlays.add(marker);
+    //                         map.goTo({ center: { lat: latitude, lon: longitude }, zoom: 13 });
+    //                     });
+    //                 })
+    //         }
+    //     );
+    // };
+
+    // const insertClinic = () => {
+    //     const map = sphereMapRef.current;
+    //     map.Overlays.clear();
+    //     navigator.geolocation.getCurrentPosition(
+    //         (position) => {
+    //             const { latitude, longitude } = position.coords;
+
+    //             axios.get(`https://api.sphere.gistda.or.th/services/poi/search?lon=${longitude}&lat=${latitude}&limit=20&tag=Poly%20Clinic&key=test2022`)
+    //                 .then(response => {
+    //                     const responseData = response.data.data;
+    //                     responseData.forEach(item => {
+    //                         const lat = item.lat
+    //                         const lon = item.lon
+    //                         const map = sphereMapRef.current;
+
+    //                         const iconHtml = renderToString(<Vaccines
+    //                             style={{
+    //                                 color: 'white',
+    //                                 borderRadius: '50%',
+    //                                 backgroundColor: '#1DBEB8',
+    //                                 padding: '2px',
+    //                             }} />
+
+    //                         );
+
+    //                         var marker = new window.sphere.Marker({ lat: lat, lon: lon },
+    //                             {
+    //                                 title: 'Custom Marker',
+    //                                 icon: {
+    //                                     html: `
+    //                                 <div>
+    //                                 ${iconHtml}
+    //                                 </div>`,
+    //                                     offset: { x: 18, y: 21 }
+    //                                 }
+    //                             }
+    //                         );
+    //                         map.Overlays.add(marker);
+    //                         map.goTo({ center: { lat: latitude, lon: longitude }, zoom: 13 });
+    //                     });
+    //                 })
+    //         }
+    //     );
+    // };
+
+    const insertHospital = async () => {
         const map = sphereMapRef.current;
         map.Overlays.clear();
 
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const { latitude, longitude } = position.coords;
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            const { latitude, longitude } = position.coords;
 
-                axios.get(`https://api.sphere.gistda.or.th/services/poi/search?lon=${longitude}&lat=${latitude}&limit=20&tag=โรงพยาบาล&key=test2022`)
-                    .then(response => {
-                        const responseData = response.data.data;
-                        responseData.forEach(item => {
-                            const lat = item.lat
-                            const lon = item.lon
-                            const map = sphereMapRef.current;
+            try {
+                const poiResponse = await axios.get(`https://api.sphere.gistda.or.th/services/poi/search?lon=${longitude}&lat=${latitude}&limit=20&tag=โรงพยาบาล&key=test2022`);
+                const responseData = poiResponse.data.data;
+                console.log(responseData);
 
-                            const iconHtml = renderToString(<LocalHospitalIcon
-                                style={{
-                                    color: 'white',
-                                    borderRadius: '50%',
-                                    padding: '2px',
-                                    backgroundColor: '#FF6968',
-                                }}
-                            />);
+                for (const item of responseData) {
+                    const { lat, lon, name, address, tel } = item;
+                    console.log(name);
 
-                            var marker = new window.sphere.Marker({ lat: lat, lon: lon },
-                                {
-                                    title: 'Custom Marker',
-                                    icon: {
-                                        html: `
-                                    <div>
-                                    ${iconHtml}
-                                    </div>`,
-                                        offset: { x: 18, y: 21 }
-                                    }
-                                }
-                            );
-                            map.Overlays.add(marker);
-                            map.goTo({ center: { lat: latitude, lon: longitude }, zoom: 13 });
-                        });
-                    })
-            }
-        );
-    };
+                    let distance = null;
+                    try {
+                        const routeResponse = await axios.get(`https://api.sphere.gistda.or.th/services/route/route?flon=${longitude}&flat=${latitude}&tlon=${lon}&tlat=${lat}&mode=d&key=test2022`);
+                        distance = routeResponse.data.data.distance;
+                    } catch (error) {
+                        console.error('Error fetching route data:', error);
+                    }
 
-    const insertClinic = () => {
-        const map = sphereMapRef.current;
-        map.Overlays.clear();
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const { latitude, longitude } = position.coords;
+                    const googleMapUrl = `https://www.google.com/maps/dir/${latitude},${longitude}/${lat},${lon}/@${lat},${lon},8z/data=!3m2!1e3!4b1!4m2!4m1!3e0`;
+                    console.log(googleMapUrl);
 
-                axios.get(`https://api.sphere.gistda.or.th/services/poi/search?lon=${longitude}&lat=${latitude}&limit=20&tag=Poly%20Clinic&key=test2022`)
-                    .then(response => {
-                        const responseData = response.data.data;
-                        responseData.forEach(item => {
-                            const lat = item.lat
-                            const lon = item.lon
-                            const map = sphereMapRef.current;
+                    const whereMapUrl = `https://where.gistda.or.th/route?dir=${latitude}-${longitude},${lat}-${lon}&result=true&swipe=1`;
 
-                            const iconHtml = renderToString(<Vaccines
-                                style={{
-                                    color: 'white',
-                                    borderRadius: '50%',
-                                    backgroundColor: '#1DBEB8',
-                                    padding: '2px',
-                                }} />
-
-                            );
-
-                            var marker = new window.sphere.Marker({ lat: lat, lon: lon },
-                                {
-                                    title: 'Custom Marker',
-                                    icon: {
-                                        html: `
-                                    <div>
-                                    ${iconHtml}
-                                    </div>`,
-                                        offset: { x: 18, y: 21 }
-                                    }
-                                }
-                            );
-                            map.Overlays.add(marker);
-                            map.goTo({ center: { lat: latitude, lon: longitude }, zoom: 13 });
-                        });
-                    })
-            }
-        );
-    };
-
-    const insertHealthSt = () => {
-        const map = sphereMapRef.current;
-        map.Overlays.clear();
-
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const { latitude, longitude } = position.coords;
-
-                axios.get(`https://api.sphere.gistda.or.th/services/poi/search?lon=${longitude}&lat=${latitude}&limit=20&tag=Public%20Health%20Center&key=test2022`)
-                    .then(response => {
-                        const responseData = response.data.data;
-
-                        responseData.forEach(item => {
-                            const { lat, lon, name, address, tel } = item;
-
-                            // const firstNumber = tel.match(/\d+/)?.[0] || '';
-
-
-                            return axios.get(`https://api.sphere.gistda.or.th/services/route/route?flon=${longitude}&flat=${latitude}&tlon=${lon}&tlat=${lat}&mode=d&key=test2022`)
-                                .then(response => {
-                                    const distance = response.data.data.distance;
-
-                                    const googleMapUrl = `https://www.google.com/maps/dir/${latitude},${longitude}/
-                                    ${lat},${lon}/@${lat},${lon},8z/data=!3m2!1e3!4b1!4m2!4m1!3e0`;
-
-                                    const whereMapUrl = `https://where.gistda.or.th/route?dir=${latitude}-${longitude},
-                                    ${lat}-${lon}&result=true&swipe=1`
-
-                                    const cardHtml = renderToString(
-                                        <CardContent
-                                            spacing={1}
+                    const cardHtml = renderToString(
+                        <CardContent
+                            spacing={1}
+                            style={{
+                                position: 'absolute',
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                                transition: 'opacity 0.3s',
+                                display: 'flex',
+                                whiteSpace: 'nowrap',
+                                borderRadius: '5px',
+                                padding: '20px',
+                                backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                                border: '2px solid #FF6968',
+                            }}
+                        >
+                            <Typography component="div">
+                                <Box style={{ fontWeight: 'bold', margin: 1 }}>{name}</Box>
+                                <Box style={{ fontWeight: 'light', margin: 1 }}>{address}</Box>
+                                <Box
+                                    sx={{
+                                        fontWeight: 'light',
+                                        m: 1,
+                                        color: '#FF6968',
+                                        verticalAlign: 'middle',
+                                        WebkitLineClamp: 1,
+                                        WebkitBoxOrient: 'vertical',
+                                        overflow: 'hidden',
+                                    }}
+                                >
+                                    {tel && (
+                                        <>
+                                            <PhoneIcon style={{ color: '#FF6968', width: '20px', verticalAlign: 'middle' }} />
+                                            &nbsp;{tel}
+                                            <br />
+                                        </>
+                                    )}
+                                </Box>
+                                {distance !== null && (
+                                    <Box style={{ fontWeight: 'light', margin: 1 }}>
+                                        <StraightenIcon style={{ color: '#FF6968', width: '20px', verticalAlign: 'middle' }} />
+                                        &nbsp;{(distance / 1000).toFixed(2)} กิโลเมตร
+                                    </Box>
+                                )}
+                                <CardActions style={{ display: 'flex' }}>
+                                    <Box style={{ display: 'flex', margin: '5px' }}>
+                                        <Button
+                                            href={whereMapUrl}
+                                            target="_blank"
                                             style={{
-                                                position: 'absolute',
-                                                // zIndex: 9999,
-                                                left: '50%',
-                                                transform: 'translateX(-50%)',
-                                                transition: 'opacity 0.3s',
                                                 display: 'flex',
-                                                whiteSpace: 'nowrap',
-                                                borderRadius: '5px',
-                                                padding: '20px',
-                                                backgroundColor: 'rgba(255, 255, 255, 0.7)',
-                                                border: '2px solid #8DBAFF',
+                                                alignItems: 'center',
+                                                maxWidth: '180px',
+                                                height: '20px',
+                                                padding: '0.5rem',
+                                                borderRadius: '15px',
+                                                backgroundColor: 'white',
+                                                boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25), inset -4px -4px 4px rgba(197, 197, 197, 0.25)',
+                                                textDecoration: 'none',
                                             }}
                                         >
-                                            <Typography component="div">
-                                                <Box
-                                                    style={{
-                                                        fontWeight: 'bold',
-                                                        margin: 1
-                                                    }}
-                                                >
-                                                    {name}
-                                                </Box>
-                                                <Box
-                                                    style={{
-                                                        fontWeight: 'light',
-                                                        margin: 1
-                                                    }}
-                                                >
-                                                    {address}
-                                                </Box>
-                                                <Box
-                                                    sx={{
-                                                        fontWeight: 'light',
-                                                        m: 1,
-                                                        color: '#8DBAFF',
-                                                        verticalAlign: 'middle',
-                                                        WebkitLineClamp: 1,
-                                                        WebkitBoxOrient: 'vertical',
-                                                        overflow: 'hidden'
-                                                    }}
-                                                >
-                                                    {tel && (
-                                                        <>
-                                                            <PhoneIcon style={{ color: '#8DBAFF', width: '20px', verticalAlign: 'middle' }} />
-                                                            &nbsp;{tel}<br />
-                                                            {/* <a>ดูเพิ่มเติม</a> */}
-                                                        </>
-                                                    )}
-                                                </Box>
-                                                <Box
-                                                    style={{
-                                                        fontWeight: 'light',
-                                                        margin: 1
-                                                    }}
-                                                >
-                                                    <StraightenIcon style={{ color: '#8DBAFF', width: '20px', verticalAlign: 'middle' }} />
-                                                    &nbsp;{(distance / 1000).toFixed(2)} กิโลเมตร
-                                                </Box>
-                                                <CardActions style={{ display: 'flex', }}>
-                                                    <Box style={{
-                                                        display: 'flex',
-                                                        margin: '5px'
-                                                    }}>
-                                                        <Button href={whereMapUrl} target="_blank"
-                                                            style={{
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                maxWidth: '180px',
-                                                                height: '20px',
-                                                                padding: '0.5rem',
-                                                                borderRadius: '15px',
-                                                                backgroundColor: 'white',
-                                                                boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25), inset -4px -4px 4px rgba(197, 197, 197, 0.25)',
-                                                                textDecoration: 'none'
-                                                            }}>
-                                                            <img
-                                                                src="https://where.gistda.or.th/favicon.ico"
-                                                                alt="Favicon"
-                                                                style={{
-                                                                    width: '1.5em',
-                                                                    borderRadius: '50%',
-                                                                    padding: '2px',
-                                                                    boxShadow: 'inset 4px 4px 4px rgba(255, 255, 255, 0.7)'
-                                                                }}
-                                                            /><span style={{ margin: '10px', color: '#5686E1' }}>WHERE</span>
-                                                        </Button>
-                                                    </Box>
-                                                    <Box style={{
-                                                        // AlignVerticalCenter,
-                                                        display: 'flex',
-                                                        margin: '5px'
-                                                    }}>
-                                                        <Button href={googleMapUrl} target="_blank"
-                                                            style={{
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                maxWidth: '180px',
-                                                                height: '20px',
-                                                                padding: '0.5rem',
-                                                                borderRadius: '15px',
-                                                                backgroundColor: 'white',
-                                                                boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25), inset -4px -4px 4px rgba(197, 197, 197, 0.25)',
-                                                                textDecoration: 'none'
-                                                            }}>
-                                                            <GoogleIcon
-                                                                style={{
-                                                                    color: 'white',
-                                                                    borderRadius: '50%',
-                                                                    padding: '2px',
-                                                                    backgroundColor: '#5686E1',
-                                                                    boxShadow: 'inset 4px 4px 4px rgba(255, 255, 255, 0.7)'
-                                                                }}
-                                                            /><span style={{ margin: '10px', color: '#5686E1' }}>Google Map</span>
-                                                        </Button>
-                                                    </Box>
-                                                </CardActions>
-                                            </Typography>
-                                        </CardContent>
-                                    );
-
-                                    const iconHtml = renderToString(
-
-                                        <MedicalInformation
+                                            <img
+                                                src="https://where.gistda.or.th/favicon.ico"
+                                                alt="Favicon"
+                                                style={{
+                                                    width: '1.5em',
+                                                    borderRadius: '50%',
+                                                    padding: '2px',
+                                                    boxShadow: 'inset 4px 4px 4px rgba(255, 255, 255, 0.7)',
+                                                }}
+                                            />
+                                            <span style={{ margin: '10px', color: '#FF6968' }}>WHERE</span>
+                                        </Button>
+                                    </Box>
+                                    <Box style={{ display: 'flex', margin: '5px' }}>
+                                        <Button
+                                            href={googleMapUrl}
+                                            target="_blank"
                                             style={{
-                                                color: 'white',
-                                                borderRadius: '50%',
-                                                backgroundColor: '#2196F3',
-                                                padding: '2px',
-                                                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                maxWidth: '180px',
+                                                height: '20px',
+                                                padding: '0.5rem',
+                                                borderRadius: '15px',
+                                                backgroundColor: 'white',
+                                                boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25), inset -4px -4px 4px rgba(197, 197, 197, 0.25)',
+                                                textDecoration: 'none',
                                             }}
-                                        />
-                                    );
+                                        >
+                                            <GoogleIcon
+                                                style={{
+                                                    color: 'white',
+                                                    borderRadius: '50%',
+                                                    padding: '2px',
+                                                    backgroundColor: '#FF6968',
+                                                    boxShadow: 'inset 4px 4px 4px rgba(255, 255, 255, 0.7)',
+                                                }}
+                                            />
+                                            <span style={{ margin: '10px', color: '#FF6968' }}>Google Map</span>
+                                        </Button>
+                                    </Box>
+                                </CardActions>
+                            </Typography>
+                        </CardContent>
+                    );
 
+                    const iconHtml = renderToString(
+                        <LocalHospitalIcon
+                            style={{
+                                color: 'white',
+                                borderRadius: '50%',
+                                backgroundColor: '#FF6968',
+                                padding: '2px',
+                                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+                            }}
+                        />
+                    );
 
-                                    const markerHtml = `
-                                            
-                                            <div class="marker" >
-                                                <div class="hover-card" style="position: absolute; z-index: 99; background-color: #000000">
-                                                    ${cardHtml}
-                                                </div>
-                                                <div class="marker-icon" >
-                                                    ${iconHtml}
-                                                </div>
-                                            </div>
-                                        `;
+                    const markerHtml =
+                        `
+                            <style>
+                                .marker-container {
+                                    position: absolute;
+                                    display: inline-block;
+                                }
 
-                                    const marker = new window.sphere.Marker(
-                                        { lat, lon },
-                                        {
-                                            icon: {
-                                                html: markerHtml,
-                                                offset: { x: 18, y: 21 }
-                                            },
-                                            // popup: {
-                                            //     html: cardHtml
-                                            // }
-                                        }
-                                    );
-                                    map.Overlays.add(marker)
+                                .hover-card {
+                                    visibility: hidden;
+                                    z-index: 0;
+                                    top: 0.5em;
+                                    position: absolute;
+                                    left: 50%;
+                                    transform: translateX(-50%);
+                                    transition: 0.25s ease-in-out;
+                                }
 
-                                    document.querySelectorAll('.marker').forEach(marker => {
-                                        marker.addEventListener('mouseover', () => {
-                                            document.querySelectorAll('.hover-card').forEach(card => {
-                                                card.style.display = 'none'; // Hide all other popups
-                                                card.style.zIndex = 9999
-                                            });
-                                            marker.querySelector('.hover-card').style.display = 'block'; // Show the current popup
-                                        });
+                                .marker-icon:hover{
+                                    position: absolute;
+                                    z-index: 100;
+                                }
 
-                                        marker.addEventListener('mouseout', () => {
-                                            marker.querySelector('.hover-card').style.display = 'none'; // Hide popup on mouse out
-                                        });
-                                    });
+                                .marker-container:hover .hover-card {
+                                    visibility: visible;
+                                    position: absolute;
+                                    z-index: 9999;
+                                }
+                            </style>
 
-                                });
-                        });
-                    });
+                            <div class='marker-container'>
+                                <div class='marker-icon'>
+                                    ${iconHtml}
+                                </div>
+                                <div class='card-container'>
+                                    <div class='hover-card'>
+                                        ${cardHtml}
+                                    </div>
+                                </div>
+                            </div>
+                            `;
+
+                    const marker = new window.sphere.Marker(
+                        { lat, lon },
+                        {
+                            icon: {
+                                html: markerHtml,
+                                offset: { x: 18, y: 21 },
+                            },
+                        }
+                    );
+                    map.Overlays.add(marker);
+                }
+
                 map.goTo({ center: { lat: latitude, lon: longitude }, zoom: 13 });
+            } catch (error) {
+                console.error('Error fetching POI data:', error);
             }
-        );
+        });
     };
+
+    const insertClinic = async () => {
+        const map = sphereMapRef.current;
+        map.Overlays.clear();
+
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            const { latitude, longitude } = position.coords;
+
+            try {
+                const poiResponse = await axios.get(`https://api.sphere.gistda.or.th/services/poi/search?lon=${longitude}&lat=${latitude}&limit=20&tag=Poly%20Clinic&key=test2022`);
+                const responseData = poiResponse.data.data;
+                console.log(responseData);
+
+                for (const item of responseData) {
+                    const { lat, lon, name, address, tel } = item;
+                    console.log(name);
+
+                    let distance = null;
+                    try {
+                        const routeResponse = await axios.get(`https://api.sphere.gistda.or.th/services/route/route?flon=${longitude}&flat=${latitude}&tlon=${lon}&tlat=${lat}&mode=d&key=test2022`);
+                        distance = routeResponse.data.data.distance;
+                    } catch (error) {
+                        console.error('Error fetching route data:', error);
+                    }
+
+                    const googleMapUrl = `https://www.google.com/maps/dir/${latitude},${longitude}/${lat},${lon}/@${lat},${lon},8z/data=!3m2!1e3!4b1!4m2!4m1!3e0`;
+                    console.log(googleMapUrl);
+
+                    const whereMapUrl = `https://where.gistda.or.th/route?dir=${latitude}-${longitude},${lat}-${lon}&result=true&swipe=1`;
+
+                    const cardHtml = renderToString(
+                        <CardContent
+                            spacing={1}
+                            style={{
+                                position: 'absolute',
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                                transition: 'opacity 0.3s',
+                                display: 'flex',
+                                whiteSpace: 'nowrap',
+                                borderRadius: '5px',
+                                padding: '20px',
+                                backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                                border: '2px solid #1DBEB8',
+                            }}
+                        >
+                            <Typography component="div">
+                                <Box style={{ fontWeight: 'bold', margin: 1 }}>{name}</Box>
+                                <Box style={{ fontWeight: 'light', margin: 1 }}>{address}</Box>
+                                <Box
+                                    sx={{
+                                        fontWeight: 'light',
+                                        m: 1,
+                                        color: '#1DBEB8',
+                                        verticalAlign: 'middle',
+                                        WebkitLineClamp: 1,
+                                        WebkitBoxOrient: 'vertical',
+                                        overflow: 'hidden',
+                                    }}
+                                >
+                                    {tel && (
+                                        <>
+                                            <PhoneIcon style={{ color: '#1DBEB8', width: '20px', verticalAlign: 'middle' }} />
+                                            &nbsp;{tel}
+                                            <br />
+                                        </>
+                                    )}
+                                </Box>
+                                {distance !== null && (
+                                    <Box style={{ fontWeight: 'light', margin: 1 }}>
+                                        <StraightenIcon style={{ color: '#1DBEB8', width: '20px', verticalAlign: 'middle' }} />
+                                        &nbsp;{(distance / 1000).toFixed(2)} กิโลเมตร
+                                    </Box>
+                                )}
+                                <CardActions style={{ display: 'flex' }}>
+                                    <Box style={{ display: 'flex', margin: '5px' }}>
+                                        <Button
+                                            href={whereMapUrl}
+                                            target="_blank"
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                maxWidth: '180px',
+                                                height: '20px',
+                                                padding: '0.5rem',
+                                                borderRadius: '15px',
+                                                backgroundColor: 'white',
+                                                boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25), inset -4px -4px 4px rgba(197, 197, 197, 0.25)',
+                                                textDecoration: 'none',
+                                            }}
+                                        >
+                                            <img
+                                                src="https://where.gistda.or.th/favicon.ico"
+                                                alt="Favicon"
+                                                style={{
+                                                    width: '1.5em',
+                                                    borderRadius: '50%',
+                                                    padding: '2px',
+                                                    boxShadow: 'inset 4px 4px 4px rgba(255, 255, 255, 0.7)',
+                                                }}
+                                            />
+                                            <span style={{ margin: '10px', color: '#1DBEB8' }}>WHERE</span>
+                                        </Button>
+                                    </Box>
+                                    <Box style={{ display: 'flex', margin: '5px' }}>
+                                        <Button
+                                            href={googleMapUrl}
+                                            target="_blank"
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                maxWidth: '180px',
+                                                height: '20px',
+                                                padding: '0.5rem',
+                                                borderRadius: '15px',
+                                                backgroundColor: 'white',
+                                                boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25), inset -4px -4px 4px rgba(197, 197, 197, 0.25)',
+                                                textDecoration: 'none',
+                                            }}
+                                        >
+                                            <GoogleIcon
+                                                style={{
+                                                    color: 'white',
+                                                    borderRadius: '50%',
+                                                    padding: '2px',
+                                                    backgroundColor: '#1DBEB8',
+                                                    boxShadow: 'inset 4px 4px 4px rgba(255, 255, 255, 0.7)',
+                                                }}
+                                            />
+                                            <span style={{ margin: '10px', color: '#1DBEB8' }}>Google Map</span>
+                                        </Button>
+                                    </Box>
+                                </CardActions>
+                            </Typography>
+                        </CardContent>
+                    );
+
+                    const iconHtml = renderToString(
+                        <Vaccines
+                            style={{
+                                color: 'white',
+                                borderRadius: '50%',
+                                backgroundColor: '#1DBEB8',
+                                padding: '2px',
+                                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+                            }}
+                        />
+                    );
+
+                    const markerHtml =
+                        `
+                            <style>
+                                .marker-container {
+                                    position: relative;
+                                    display: inline-block;
+                                    z-index: 20;
+                                }
+
+                                .card-container {
+                                    visibility: hidden;
+                                    z-index: 100;
+                                    top: -10em;
+                                    position: absolute;
+                                    left: 50%;
+                                    transform: translateX(-50%);
+                                    transition: 0.25s ease-in-out;
+                                }
+
+                                .marker-container:hover .card-container {
+                                    visibility: visible;
+                                    position: absolute;
+                                    z-index: 9999;
+                                }
+                            </style>
+
+                            <div class='marker-container'>
+                                <div class='marker-icon'>
+                                    ${iconHtml}
+                                </div>
+                                <div class='card-container'>
+                                    <div class='hover-card' style="z-index: 1000">
+                                        ${cardHtml}
+                                    </div>
+                                </div>
+                            </div>
+                            `;
+
+                    const marker = new window.sphere.Marker(
+                        { lat, lon },
+                        {
+                            icon: {
+                                html: markerHtml,
+                                offset: { x: 18, y: 21 },
+                            },
+                        }
+                    );
+                    map.Overlays.add(marker);
+                }
+
+                map.goTo({ center: { lat: latitude, lon: longitude }, zoom: 13 });
+            } catch (error) {
+                console.error('Error fetching POI data:', error);
+            }
+        });
+    };
+
+    const insertHealthSt = async () => {
+        const map = sphereMapRef.current;
+        map.Overlays.clear();
+
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            const { latitude, longitude } = position.coords;
+
+            try {
+                const poiResponse = await axios.get(`https://api.sphere.gistda.or.th/services/poi/search?lon=${longitude}&lat=${latitude}&limit=20&tag=Public%20Health%20Center&key=test2022`);
+                const responseData = poiResponse.data.data;
+                console.log(responseData);
+
+                for (const item of responseData) {
+                    const { lat, lon, name, address, tel } = item;
+                    console.log(name);
+
+                    let distance = null;
+                    try {
+                        const routeResponse = await axios.get(`https://api.sphere.gistda.or.th/services/route/route?flon=${longitude}&flat=${latitude}&tlon=${lon}&tlat=${lat}&mode=d&key=test2022`);
+                        distance = routeResponse.data.data.distance;
+                    } catch (error) {
+                        console.error('Error fetching route data:', error);
+                    }
+
+                    const googleMapUrl = `https://www.google.com/maps/dir/${latitude},${longitude}/${lat},${lon}/@${lat},${lon},8z/data=!3m2!1e3!4b1!4m2!4m1!3e0`;
+                    console.log(googleMapUrl);
+
+                    const whereMapUrl = `https://where.gistda.or.th/route?dir=${latitude}-${longitude},${lat}-${lon}&result=true&swipe=1`;
+
+                    const cardHtml = renderToString(
+                        <CardContent
+                            spacing={1}
+                            style={{
+                                position: 'absolute',
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                                transition: 'opacity 0.3s',
+                                display: 'flex',
+                                whiteSpace: 'nowrap',
+                                borderRadius: '5px',
+                                padding: '20px',
+                                backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                                border: '2px solid #8DBAFF',
+                            }}
+                        >
+                            <Typography component="div">
+                                <Box style={{ fontWeight: 'bold', margin: 1 }}>{name}</Box>
+                                <Box style={{ fontWeight: 'light', margin: 1 }}>{address}</Box>
+                                <Box
+                                    sx={{
+                                        fontWeight: 'light',
+                                        m: 1,
+                                        color: '#8DBAFF',
+                                        verticalAlign: 'middle',
+                                        WebkitLineClamp: 1,
+                                        WebkitBoxOrient: 'vertical',
+                                        overflow: 'hidden',
+                                    }}
+                                >
+                                    {tel && (
+                                        <>
+                                            <PhoneIcon style={{ color: '#8DBAFF', width: '20px', verticalAlign: 'middle' }} />
+                                            &nbsp;{tel}
+                                            <br />
+                                        </>
+                                    )}
+                                </Box>
+                                {distance !== null && (
+                                    <Box style={{ fontWeight: 'light', margin: 1 }}>
+                                        <StraightenIcon style={{ color: '#8DBAFF', width: '20px', verticalAlign: 'middle' }} />
+                                        &nbsp;{(distance / 1000).toFixed(2)} กิโลเมตร
+                                    </Box>
+                                )}
+                                <CardActions style={{ display: 'flex' }}>
+                                    <Box style={{ display: 'flex', margin: '5px' }}>
+                                        <Button
+                                            href={whereMapUrl}
+                                            target="_blank"
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                maxWidth: '180px',
+                                                height: '20px',
+                                                padding: '0.5rem',
+                                                borderRadius: '15px',
+                                                backgroundColor: 'white',
+                                                boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25), inset -4px -4px 4px rgba(197, 197, 197, 0.25)',
+                                                textDecoration: 'none',
+                                            }}
+                                        >
+                                            <img
+                                                src="https://where.gistda.or.th/favicon.ico"
+                                                alt="Favicon"
+                                                style={{
+                                                    width: '1.5em',
+                                                    borderRadius: '50%',
+                                                    padding: '2px',
+                                                    boxShadow: 'inset 4px 4px 4px rgba(255, 255, 255, 0.7)',
+                                                }}
+                                            />
+                                            <span style={{ margin: '10px', color: '#5686E1' }}>WHERE</span>
+                                        </Button>
+                                    </Box>
+                                    <Box style={{ display: 'flex', margin: '5px' }}>
+                                        <Button
+                                            href={googleMapUrl}
+                                            target="_blank"
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                maxWidth: '180px',
+                                                height: '20px',
+                                                padding: '0.5rem',
+                                                borderRadius: '15px',
+                                                backgroundColor: 'white',
+                                                boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25), inset -4px -4px 4px rgba(197, 197, 197, 0.25)',
+                                                textDecoration: 'none',
+                                            }}
+                                        >
+                                            <GoogleIcon
+                                                style={{
+                                                    color: 'white',
+                                                    borderRadius: '50%',
+                                                    padding: '2px',
+                                                    backgroundColor: '#5686E1',
+                                                    boxShadow: 'inset 4px 4px 4px rgba(255, 255, 255, 0.7)',
+                                                }}
+                                            />
+                                            <span style={{ margin: '10px', color: '#5686E1' }}>Google Map</span>
+                                        </Button>
+                                    </Box>
+                                </CardActions>
+                            </Typography>
+                        </CardContent>
+                    );
+
+                    const iconHtml = renderToString(
+                        <MedicalInformation
+                            style={{
+                                color: 'white',
+                                borderRadius: '50%',
+                                backgroundColor: '#2196F3',
+                                padding: '2px',
+                                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+                            }}
+                        />
+                    );
+
+                    const markerHtml =
+                        `
+                            <style>
+                                .marker-container {
+                                    position: relative;
+                                    display: inline-block;
+                                    z-index: 20;
+                                }
+
+                                .card-container {
+                                    visibility: hidden;
+                                    z-index: 100;
+                                    top: -10em;
+                                    position: absolute;
+                                    left: 50%;
+                                    transform: translateX(-50%);
+                                    transition: 0.25s ease-in-out;
+                                }
+
+                                .marker-container:hover .card-container {
+                                    visibility: visible;
+                                    position: absolute;
+                                    z-index: 9999;
+                                }
+                            </style>
+
+                            <div class='marker-container'>
+                                <div class='marker-icon'>
+                                    ${iconHtml}
+                                </div>
+                                <div class='card-container'>
+                                    <div class='hover-card' style="z-index: 1000">
+                                        ${cardHtml}
+                                    </div>
+                                </div>
+                            </div>
+                            `;
+
+                    const marker = new window.sphere.Marker(
+                        { lat, lon },
+                        {
+                            icon: {
+                                html: markerHtml,
+                                offset: { x: 18, y: 21 },
+                            },
+                        }
+                    );
+                    map.Overlays.add(marker);
+                }
+
+                map.goTo({ center: { lat: latitude, lon: longitude }, zoom: 13 });
+            } catch (error) {
+                console.error('Error fetching POI data:', error);
+            }
+        });
+    };
+
 
 
 
@@ -965,8 +1479,7 @@ const Map = () => {
                     </Tooltip>
                 </FormGroup>
 
-
-                <Tooltip
+                {/* <Tooltip
                     title="ระบุตำแหน่งที่สนใจ" arrow placement="left"
                     TransitionComponent={Zoom}
                     componentsProps={{
@@ -994,7 +1507,9 @@ const Map = () => {
                     >
                         <WhereToVoteIcon />
                     </IconButton>
-                </Tooltip>
+                </Tooltip> */}
+
+
                 <Tooltip
                     title="แผนที่ฐาน" arrow placement="left"
                     TransitionComponent={Zoom}
