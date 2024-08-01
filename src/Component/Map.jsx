@@ -29,7 +29,7 @@ import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
 // import WhereToVoteIcon from '@mui/icons-material/WhereToVote';
-import CircularProgress from '@mui/material/CircularProgress';
+// import CircularProgress from '@mui/material/CircularProgress';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
 import LayersIcon from '@mui/icons-material/Layers';
 import AddIcon from '@mui/icons-material/Add';
@@ -45,6 +45,8 @@ const Map = () => {
     const sphereMapRef = useRef(null);
     const [isPM25Checked, setIsPM25Checked] = useState(true);
     const [pm25wmsLayer, setPm25wmsLayer] = useState(null);
+    const [pm25ClickHandler, setPm25ClickHandler] = useState(null);
+
 
     useEffect(() => {
         const script = document.createElement("script");
@@ -170,7 +172,6 @@ const Map = () => {
                 };
                 getLoc();
                 clickButtonWithTitle('Find my location');
-
             });
         };
         document.body.appendChild(script);
@@ -196,58 +197,38 @@ const Map = () => {
             map.Layers.add(pm25wms);
             setPm25wmsLayer(pm25wms);
 
-            map.Event.bind(sphere.EventName.Click, function (location) {
-                // console.log(location);
-
-                // Assuming location has lat and lon properties
-                var lat = location.lat;
-                var lon = location.lon;
+            const handleMapClick = (location) => {
+                const lat = location.lat;
+                const lon = location.lon;
 
                 axios.get(`https://pm25.gistda.or.th/rest/getPm25byLocation?lat=${lat}&lng=${lon}`)
                     .then(response => {
-                        const data = response.data.data
-                        const tb = data.loc['tb_tn']
-                        const ap = data.loc['ap_tn']
+                        const data = response.data.data;
+                        const pm25 = data['pm25'];
+                        const tb = data.loc['tb_tn'];
+                        const ap = data.loc['ap_tn'];
+                        const pv = data.loc['pv_tn'];
+                        const date = data.datetimeThai['dateThai'];
+                        const time = data.datetimeThai['timeThai'];
 
-                        const pv = data.loc['pv_tn']
-
-                        const pm25 = data['pm25']
-
-                        // update sect
-                        const date = data.datetimeThai['dateThai']
-                        const time = data.datetimeThai['timeThai']
-
-                        ///////////////////////////////////////////////////////////////////////////////////////////////
-                        ///////////////////////////////////////// Text Color  /////////////////////////////////////////
-                        ///////////////////////////////////////////////////////////////////////////////////////////////
                         let color;
-                        if (pm25 < 15) {
-                            color = '#4FAFBF'; // Very Good air quality
-                        } else if (pm25 > 15 && pm25 <= 25) {
-                            color = '#9FCF62';
-                        } else if (pm25 > 25 && pm25 <= 37.5) {
-                            color = '#F1E151'; // Good
-                        } else if (pm25 > 37.5 && pm25 <= 75) {
-                            color = '#F1A53B'; // Moderate
-                        } else {
-                            color = '#EB4E47'; // Unhealthy for sensitive group
-                        }
-
                         let level;
                         if (pm25 < 15) {
-                            level = 'ดีมาก'; // Very Good air quality
+                            color = '#4FAFBF';
+                            level = 'ดีมาก';
                         } else if (pm25 > 15 && pm25 <= 25) {
+                            color = '#9FCF62';
                             level = 'ดี';
                         } else if (pm25 > 25 && pm25 <= 37.5) {
-                            level = 'ปานกลาง'; // Good
+                            color = '#F1E151';
+                            level = 'ปานกลาง';
                         } else if (pm25 > 37.5 && pm25 <= 75) {
-                            level = 'เริ่มมีผล'; // Moderate
+                            color = '#F1A53B';
+                            level = 'เริ่มมีผล';
                         } else {
-                            level = 'มีผล'; // Unhealthy for sensitive group
+                            color = '#EB4E47';
+                            level = 'มีผล';
                         }
-                        ///////////////////////////////////////////////////////////////////////////////////////////////
-                        ///////////////////////////////////////// Text Color  /////////////////////////////////////////
-                        ///////////////////////////////////////////////////////////////////////////////////////////////
 
                         const pm25Formatted = pm25.toFixed(2);
 
@@ -295,24 +276,160 @@ const Map = () => {
                                 element.innerHTML = popupDetail;
                             }, 1000);
                         }
-
-
                         map.Overlays.add(popUp);
-
                     });
+            };
 
-            });
+            map.Event.bind(sphere.EventName.Click, handleMapClick);
+            setPm25ClickHandler(() => handleMapClick);
 
         } else {
             if (pm25wmsLayer) {
                 map.Layers.remove(pm25wmsLayer);
                 setPm25wmsLayer(null);
             }
+
+            if (pm25ClickHandler) {
+                map.Event.unbind(sphere.EventName.Click, pm25ClickHandler);
+                setPm25ClickHandler(null);
+            }
         }
     };
 
-    const insertAllhospital = () => {
+    // const handlePM25Toggle = (event) => {
+    //     setIsPM25Checked(event.target.checked);
+    //     const sphere = window.sphere;
+    //     const map = sphereMapRef.current;
 
+    //     if (event.target.checked) {
+    //         const pm25wms = new sphere.Layer('0', {
+    //             type: sphere.LayerType.WMS,
+    //             url: "https://service-proxy-765rkyfg3q-as.a.run.app/api_geoserver/geoserver/pm25_hourly_raster_24hr/wms",
+    //             zoomRange: { min: 1, max: 15 },
+    //             zIndex: 5,
+    //             opacity: 1,
+    //             id: 'layer_24pm25'
+    //         });
+    //         map.Layers.add(pm25wms);
+    //         setPm25wmsLayer(pm25wms);
+
+
+    //         //Add Popup Event
+    //         map.Event.bind(sphere.EventName.Click, function (location) {
+    //             // console.log(location);
+
+    //             // Assuming location has lat and lon properties
+    //             var lat = location.lat;
+    //             var lon = location.lon;
+
+    //             axios.get(`https://pm25.gistda.or.th/rest/getPm25byLocation?lat=${lat}&lng=${lon}`)
+    //                 .then(response => {
+    //                     const data = response.data.data
+    //                     const tb = data.loc['tb_tn']
+    //                     const ap = data.loc['ap_tn']
+
+    //                     const pv = data.loc['pv_tn']
+
+    //                     const pm25 = data['pm25']
+
+    //                     // update sect
+    //                     const date = data.datetimeThai['dateThai']
+    //                     const time = data.datetimeThai['timeThai']
+
+    //                     ///////////////////////////////////////////////////////////////////////////////////////////////
+    //                     ///////////////////////////////////////// Text Color  /////////////////////////////////////////
+    //                     ///////////////////////////////////////////////////////////////////////////////////////////////
+    //                     let color;
+    //                     if (pm25 < 15) {
+    //                         color = '#4FAFBF'; // Very Good air quality
+    //                     } else if (pm25 > 15 && pm25 <= 25) {
+    //                         color = '#9FCF62';
+    //                     } else if (pm25 > 25 && pm25 <= 37.5) {
+    //                         color = '#F1E151'; // Good
+    //                     } else if (pm25 > 37.5 && pm25 <= 75) {
+    //                         color = '#F1A53B'; // Moderate
+    //                     } else {
+    //                         color = '#EB4E47'; // Unhealthy for sensitive group
+    //                     }
+
+    //                     let level;
+    //                     if (pm25 < 15) {
+    //                         level = 'ดีมาก'; // Very Good air quality
+    //                     } else if (pm25 > 15 && pm25 <= 25) {
+    //                         level = 'ดี';
+    //                     } else if (pm25 > 25 && pm25 <= 37.5) {
+    //                         level = 'ปานกลาง'; // Good
+    //                     } else if (pm25 > 37.5 && pm25 <= 75) {
+    //                         level = 'เริ่มมีผล'; // Moderate
+    //                     } else {
+    //                         level = 'มีผล'; // Unhealthy for sensitive group
+    //                     }
+    //                     ///////////////////////////////////////////////////////////////////////////////////////////////
+    //                     ///////////////////////////////////////// Text Color  /////////////////////////////////////////
+    //                     ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    //                     const pm25Formatted = pm25.toFixed(2);
+
+    //                     const loadingHtml = `
+    //                                 <div style="display: flex; align-items: center; justify-content: center; padding: 16px;">
+    //                                     <div style="border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #3498db; width: 24px; height: 24px; animation: spin 1s linear infinite; margin-right: 8px;"></div>
+    //                                     <span style="font-size: 14px;">กำลังค้นหาข้อมูล...</span>
+    //                                 </div>
+    //                                 <style>
+    //                                     @keyframes spin {
+    //                                         0% { transform: rotate(0deg); }
+    //                                         100% { transform: rotate(360deg); }
+    //                                     }
+    //                                 </style>
+    //                             `;
+
+    //                     const popupDetail = `
+    //                             <div style="padding:0.5rem;">
+    //                                 <span id="location" style="font-size: 16px; font-weight: bold;">${tb} ${ap} ${pv}</span><br />
+    //                                 <span style="font-size: 14px;">สภาพอากาศวันนี้</span><br />
+    //                                 <span style="font-size: 12px;">ค่า PM2.5</span><br />
+    //                                 <span id='value' style={{ fontWeight: 'bold', fontSize: '30px' }}><span style="color: ${color}; font-weight: bold; font-size: 30px;">${pm25Formatted} </span></span>
+    //                                 <span style="font-size: 10px;">µg./m3</span>
+    //                                 <span id="level"><span style="color: ${color}; font-weight: bold; font-size: 30px;"> ${level}</span><br />
+    //                                 <span id="update" style="font-size: 12px; color: #a6a6a6;">อัพเดทล่าสุด ${date} ${time}</span>
+    //                             </div>
+    //                         `;
+
+    //                     var popUp = new sphere.Popup({ lon: lon, lat: lat }, {
+    //                         title: `
+    //                             <span style='font-weight: 500; margin-left: 0.5rem;'> ตำแหน่งที่สนใจ</span>
+    //                             <span style='font-weight: 400; color: #a6a6a6;'>
+    //                                 ${lat.toFixed(4)}, ${lon.toFixed(4)} (Lat, Lon)
+    //                             </span>
+    //                         `
+    //                         ,
+    //                         detail: loadingHtml,
+    //                         loadDetail: updateDetail,
+    //                         size: { width: '100%' },
+    //                         closable: true
+    //                     });
+
+    //                     function updateDetail(element) {
+    //                         setTimeout(function () {
+    //                             element.innerHTML = popupDetail;
+    //                         }, 1000);
+    //                     }
+
+
+    //                     map.Overlays.add(popUp);
+    //                 });
+
+    //         });
+
+    //     } else {
+    //         if (pm25wmsLayer) {
+    //             map.Layers.remove(pm25wmsLayer);
+    //             setPm25wmsLayer(null);
+    //         }
+    //     }
+    // };
+
+    const insertAllhospital = () => {
         const map = sphereMapRef.current;
         map.Overlays.clear();
         insertHospital();
@@ -1029,9 +1146,6 @@ const Map = () => {
         });
     };
 
-
-
-
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -1395,8 +1509,7 @@ const Map = () => {
                             height: '18px'
                         }}
                         value="PM2.5"
-                        control={<Switch checked={isPM25Checked}
-                            onChange={handlePM25Toggle} color="primary" />}
+                        control={<Switch checked={isPM25Checked} onChange={handlePM25Toggle} color="primary" />}
                         label={<span style={{ fontSize: '14px', color: 'white' }}>PM2.5</span>}
                         labelPlacement="start"
                     />
