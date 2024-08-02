@@ -16,12 +16,11 @@ import InputBase from '@mui/material/InputBase';
 import SearchIcon from '@mui/icons-material/Search';
 import PhoneIcon from '@mui/icons-material/Phone';
 import StraightenIcon from '@mui/icons-material/Straighten';
-
-
-// import { red } from '@mui/material/colors';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import Vaccines from '@mui/icons-material/Vaccines';
 import MedicalInformation from '@mui/icons-material/MedicalInformation';
+import InfoIcon from '@mui/icons-material/Info';
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 
 //Icon
 import IconButton from '@mui/material/IconButton';
@@ -43,10 +42,11 @@ import GoogleIcon from '@mui/icons-material/Google';
 const Map = () => {
     const mapRef = useRef(null);
     const sphereMapRef = useRef(null);
+
+
     const [isPM25Checked, setIsPM25Checked] = useState(true);
     const [pm25wmsLayer, setPm25wmsLayer] = useState(null);
     const [pm25ClickHandler, setPm25ClickHandler] = useState(null);
-
 
     useEffect(() => {
         const script = document.createElement("script");
@@ -61,7 +61,6 @@ const Map = () => {
             });
             sphereMapRef.current = map;
 
-
             map.Event.bind(sphere.EventName.Ready, async function () {
                 map.Ui.Geolocation.visible(false);
                 map.Ui.Fullscreen.visible(false);
@@ -71,24 +70,120 @@ const Map = () => {
                 map.Ui.Scale.visible(false);
                 map.Ui.LayerSelector.visible(false);
 
-                var pm25wms = new sphere.Layer('0', {
-                    type: sphere.LayerType.WMS,
-                    url: "https://service-proxy-765rkyfg3q-as.a.run.app/api_geoserver/geoserver/pm25_hourly_raster_24hr/wms",
-                    zoomRange: { min: 1, max: 15 },
-                    zIndex: 5,
-                    opacity: 0.8,
-                    id: 'layer_24pm25'
-                });
-                map.Layers.add(pm25wms);
-                setPm25wmsLayer(pm25wms);
-                setIsPM25Checked(true);
+                if (isPM25Checked) {
+                    const pm25wms = new sphere.Layer('0', {
+                        type: sphere.LayerType.WMS,
+                        url: "https://service-proxy-765rkyfg3q-as.a.run.app/api_geoserver/geoserver/pm25_hourly_raster_24hr/wms",
+                        zoomRange: { min: 1, max: 15 },
+                        zIndex: 5,
+                        opacity: 1,
+                        id: 'layer_24pm25'
+                    });
+                    map.Layers.add(pm25wms);
+                    setPm25wmsLayer(pm25wms);
+
+                    const handleMapClick = (location) => {
+                        const lat = location.lat;
+                        const lon = location.lon;
+
+                        axios.get(`https://pm25.gistda.or.th/rest/getPm25byLocation?lat=${lat}&lng=${lon}`)
+                            .then(response => {
+                                const data = response.data.data;
+                                const pm25 = data['pm25'];
+                                const tb = data.loc['tb_tn'];
+                                const ap = data.loc['ap_tn'];
+                                const pv = data.loc['pv_tn'];
+                                const date = data.datetimeThai['dateThai'];
+                                const time = data.datetimeThai['timeThai'];
+
+                                let color;
+                                let level;
+                                if (pm25 < 15) {
+                                    color = '#4FAFBF';
+                                    level = 'ดีมาก';
+                                } else if (pm25 > 15 && pm25 <= 25) {
+                                    color = '#9FCF62';
+                                    level = 'ดี';
+                                } else if (pm25 > 25 && pm25 <= 37.5) {
+                                    color = '#F1E151';
+                                    level = 'ปานกลาง';
+                                } else if (pm25 > 37.5 && pm25 <= 75) {
+                                    color = '#F1A53B';
+                                    level = 'เริ่มมีผล';
+                                } else {
+                                    color = '#EB4E47';
+                                    level = 'มีผล';
+                                }
+
+                                const pm25Formatted = pm25.toFixed(2);
+
+                                const loadingHtml = `
+                                            <div style="display: flex; align-items: center; justify-content: center; padding: 16px;">
+                                                <div style="border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #3498db; width: 24px; height: 24px; animation: spin 1s linear infinite; margin-right: 8px;"></div>
+                                                <span style="font-size: 14px;">กำลังค้นหาข้อมูล...</span>
+                                            </div>
+                                            <style>
+                                                @keyframes spin {
+                                                    0% { transform: rotate(0deg); }
+                                                    100% { transform: rotate(360deg); }
+                                                }
+                                            </style>
+                                        `;
+
+                                const popupDetail = `
+                                        <div style="padding:0.5rem;">
+                                            <span id="location" style="font-size: 16px; font-weight: bold;">${tb} ${ap} ${pv}</span><br />
+                                            <span style="font-size: 14px;">สภาพอากาศวันนี้</span><br />
+                                            <span style="font-size: 12px;">ค่า PM2.5</span><br />
+                                            <span id='value' style={{ fontWeight: 'bold', fontSize: '30px' }}><span style="color: ${color}; font-weight: bold; font-size: 30px;">${pm25Formatted} </span></span>
+                                            <span style="font-size: 10px;">µg./m3</span>
+                                            <span id="level"><span style="color: ${color}; font-weight: bold; font-size: 30px;"> ${level}</span><br />
+                                            <span id="update" style="font-size: 12px; color: #a6a6a6;">อัพเดทล่าสุด ${date} ${time}</span>
+                                        </div>
+                                    `;
+
+                                var popUp = new sphere.Popup({ lon: lon, lat: lat }, {
+                                    title: `
+                                        <span style='font-weight: 500; margin-left: 0.5rem;'> ตำแหน่งที่สนใจ</span>
+                                        <span style='font-weight: 400; color: #a6a6a6;'>
+                                            ${lat.toFixed(4)}, ${lon.toFixed(4)}
+                                        </span>
+                                    `
+                                    ,
+                                    detail: loadingHtml,
+                                    loadDetail: updateDetail,
+                                    size: { width: '100%' },
+                                    closable: true
+                                });
+
+                                function updateDetail(element) {
+                                    setTimeout(function () {
+                                        element.innerHTML = popupDetail;
+                                    }, 1000);
+                                }
+                                map.Overlays.add(popUp);
+                            });
+                    };
+
+                    map.Event.bind(sphere.EventName.Click, handleMapClick);
+                    setPm25ClickHandler(() => handleMapClick);
+
+                } else {
+                    if (pm25wmsLayer) {
+                        map.Layers.remove(pm25wmsLayer);
+                        setPm25wmsLayer(null);
+                    }
+
+                    if (pm25ClickHandler) {
+                        map.Event.unbind(sphere.EventName.Click, pm25ClickHandler);
+                        setPm25ClickHandler(null);
+                    }
+                }
 
                 const getLoc = () => {
                     navigator.geolocation.getCurrentPosition(
                         (position) => {
                             const { latitude, longitude } = position.coords;
-                            // console.log(`UserLocation Lat ${latitude}, lon ${longitude}`);
-                            // map.goTo({ center: { lat: latitude, lon: longitude }, zoom: 15 });
 
                             axios.get(`https://pm25.gistda.or.th/rest/getPm25byLocation?lat=${latitude}&lng=${longitude}`)
                                 .then(response => {
@@ -180,12 +275,15 @@ const Map = () => {
         };
     }, []);
 
-    const handlePM25Toggle = (event) => {
-        setIsPM25Checked(event.target.checked);
+    const handlePM25Toggle = (e) => {
         const sphere = window.sphere;
         const map = sphereMapRef.current;
 
-        if (event.target.checked) {
+        const isChecked = e.target.checked;
+        setIsPM25Checked(isChecked);
+
+        if (isChecked) {
+            console.log('Adding PM2.5 WMS layer');
             const pm25wms = new sphere.Layer('0', {
                 type: sphere.LayerType.WMS,
                 url: "https://service-proxy-765rkyfg3q-as.a.run.app/api_geoserver/geoserver/pm25_hourly_raster_24hr/wms",
@@ -261,7 +359,7 @@ const Map = () => {
                             title: `
                                 <span style='font-weight: 500; margin-left: 0.5rem;'> ตำแหน่งที่สนใจ</span>
                                 <span style='font-weight: 400; color: #a6a6a6;'>
-                                    ${lat.toFixed(4)}, ${lon.toFixed(4)} (Lat, Lon)
+                                    ${lat.toFixed(4)}, ${lon.toFixed(4)}
                                 </span>
                             `
                             ,
@@ -1222,8 +1320,6 @@ const Map = () => {
                     map.goTo({ center: { lat: lat, lon: lon }, zoom: 13 });
                 });
             })
-
-
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -1493,7 +1589,7 @@ const Map = () => {
                     </Paper>
                 )}
             </div>
-            <Box className='Box' sx={{ zIndex: '10' }}>
+            <Box className='Box' sx={{ zIndex: '10', marginTop: '0', justifyContent: 'space-between' }}>
                 <FormGroup
                     sx={{
                         backgroundColor: '#00B2FF',
@@ -1767,6 +1863,40 @@ const Map = () => {
                             }} />
                     </IconButton>
                 </Tooltip>
+                <FormGroup style={{ position: 'fixed', bottom: '2rem' }}>
+
+                    <Tooltip
+                        title="การใช้งาน" arrow placement="left"
+                        TransitionComponent={Zoom}
+                        componentsProps={{
+                            tooltip: {
+                                sx: {
+                                    color: '#707070',
+                                    bgcolor: 'white',
+                                    fontFamily: 'Prompt',
+                                    '& .MuiTooltip-arrow': {
+                                        color: 'white',
+                                    },
+                                },
+                            },
+                        }}
+                    >
+                        <IconButton
+                            className="infoIcon"
+                            // onClick={remove}
+                            sx={{
+                                margin: '0.5rem',
+                                boxShadow: '0px 3.88883px 3.88883px rgba(0, 0, 0, 0.25)',
+                                color: 'white'
+                            }}
+                        >
+                            <InfoIcon
+                                sx={{
+                                    color: '#707070'
+                                }} />
+                        </IconButton>
+                    </Tooltip>
+                </FormGroup>
             </Box>
         </>
     </div >;
