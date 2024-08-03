@@ -38,7 +38,7 @@ import Satt from '/src/Icon/satt.svg'
 import ClearIcon from '@mui/icons-material/Clear';
 import WrongLocationIcon from '@mui/icons-material/WrongLocation';
 import GoogleIcon from '@mui/icons-material/Google';
-import THsvg from '/src/Icon/thailand.svg'
+// import THsvg from '/src/Icon/thailand.svg'
 
 const Map = () => {
     const mapRef = useRef(null);
@@ -1258,7 +1258,7 @@ const Map = () => {
     const searchRef = useRef(null);
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
-    const [selectedIndex, setSelectedIndex] = useState(-1); // -1 means no item selected
+    const [selectedIndex, setSelectedIndex] = useState(-1);
 
     // Fetch suggestions based on input value
     const handleSearch = () => {
@@ -1283,7 +1283,7 @@ const Map = () => {
                 const data = response.data.data;
                 setSuggestions(data);
                 setShowSuggestions(true);
-                setSelectedIndex(-1); // Reset selected index
+                setSelectedIndex(-1);
             })
             .catch(error => {
                 console.error('Error fetching suggestions:', error);
@@ -1305,6 +1305,7 @@ const Map = () => {
             if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
                 // Handle item selection
                 const selectedItem = suggestions[selectedIndex];
+                searchRef.current.value = selectedItem.name; // Update input value
                 navigate(selectedItem.name); // Navigate or handle the selected item
                 setSuggestions([]);
                 setShowSuggestions(false);
@@ -1330,12 +1331,14 @@ const Map = () => {
         }
     };
 
-    // Handle suggestion click
     const handleSuggestionClick = (itemName) => {
+        searchRef.current.value = itemName; // Update the search bar's value
         navigate(itemName);
         setSuggestions([]);
         setShowSuggestions(false);
     };
+
+
 
     // Navigate or handle selected item
     const navigate = (itemName) => {
