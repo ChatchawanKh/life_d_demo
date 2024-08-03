@@ -38,6 +38,7 @@ import Satt from '/src/Icon/satt.svg'
 import ClearIcon from '@mui/icons-material/Clear';
 import WrongLocationIcon from '@mui/icons-material/WrongLocation';
 import GoogleIcon from '@mui/icons-material/Google';
+import THsvg from '/src/Icon/thailand.svg'
 
 const Map = () => {
     const mapRef = useRef(null);
@@ -273,6 +274,7 @@ const Map = () => {
         return () => {
             document.body.removeChild(script);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handlePM25Toggle = (e) => {
@@ -1256,42 +1258,94 @@ const Map = () => {
     const searchRef = useRef(null);
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
+    const [selectedIndex, setSelectedIndex] = useState(-1); // -1 means no item selected
 
-    const handleSearchClick = () => {
+    // Fetch suggestions based on input value
+    const handleSearch = () => {
         const API = 'https://api.sphere.gistda.or.th/services/search/suggest';
         const inputValue = searchRef.current.value.trim();
-        console.log(inputValue);
+
+        if (!inputValue) {
+            setSuggestions([]);
+            setShowSuggestions(false);
+            return;
+        }
 
         axios.get(API, {
             params: {
                 keyword: inputValue,
-                limit: 10,
+                limit: 6,
                 sdx: true,
                 key: 'test2022'
             }
         })
             .then(response => {
-                const name = response.data.data;
-                setSuggestions(name);
+                const data = response.data.data;
+                setSuggestions(data);
                 setShowSuggestions(true);
+                setSelectedIndex(-1); // Reset selected index
             })
-    }
+            .catch(error => {
+                console.error('Error fetching suggestions:', error);
+                setSuggestions([]);
+                setShowSuggestions(false);
+            });
+    };
 
+    // Handle keyboard navigation and selection
+    const handleKeyDown = (event) => {
+        if (event.key === 'ArrowDown') {
+            event.preventDefault(); // Prevent scrolling
+            setSelectedIndex(prevIndex => (prevIndex + 1) % suggestions.length);
+        } else if (event.key === 'ArrowUp') {
+            event.preventDefault(); // Prevent scrolling
+            setSelectedIndex(prevIndex => (prevIndex - 1 + suggestions.length) % suggestions.length);
+        } else if (event.key === 'Enter') {
+            event.preventDefault();
+            if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
+                // Handle item selection
+                const selectedItem = suggestions[selectedIndex];
+                navigate(selectedItem.name); // Navigate or handle the selected item
+                setSuggestions([]);
+                setShowSuggestions(false);
+            }
+        }
+    };
 
+    useEffect(() => {
+        if (searchRef.current) {
+            searchRef.current.addEventListener('keydown', handleKeyDown);
+            return () => {
+                searchRef.current.removeEventListener('keydown', handleKeyDown);
+            };
+        }
+    }, [suggestions, selectedIndex]);
+
+    // Handle clear button click
     const handleClearClick = () => {
         setSuggestions([]);
         setShowSuggestions(false);
-        searchRef.current.value = '';
+        if (searchRef.current) {
+            searchRef.current.value = '';
+        }
     };
 
+    // Handle suggestion click
+    const handleSuggestionClick = (itemName) => {
+        navigate(itemName);
+        setSuggestions([]);
+        setShowSuggestions(false);
+    };
+
+    // Navigate or handle selected item
     const navigate = (itemName) => {
-        const loc = `${itemName}`
+        const loc = `${itemName}`;
         const API = 'https://api.sphere.gistda.or.th/services/search/search?';
 
         axios.get(API, {
             params: {
                 keyword: loc,
-                limit: 10,
+                limit: 6,
                 showdistance: true,
                 key: 'test2022'
             }
@@ -1299,8 +1353,8 @@ const Map = () => {
             .then(response => {
                 const responseData = response.data.data;
                 responseData.forEach(item => {
-                    const lat = item.lat
-                    const lon = item.lon
+                    const lat = item.lat;
+                    const lon = item.lon;
                     const map = sphereMapRef.current;
 
                     var marker = new window.sphere.Marker({ lat: lat, lon: lon },
@@ -1320,6 +1374,7 @@ const Map = () => {
                     map.goTo({ center: { lat: lat, lon: lon }, zoom: 13 });
                 });
             })
+            .catch(error => console.error('Error navigating:', error));
     };
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -1344,6 +1399,11 @@ const Map = () => {
         } else {
             console.error('Geolocation functionality is not available.');
         }
+    };
+
+    const thZoom = () => {
+        const map = sphereMapRef.current;
+        map.goTo({ center: { lon: 100.590204861417, lat: 13.861545245028843 }, zoom: 5 });
     };
 
     const zoomin = () => {
@@ -1384,15 +1444,16 @@ const Map = () => {
         map.Layers.setBase(window.sphere.Layers.HYBRID);
     };
 
-    const [anchorEl, setAnchorEl] = React.useState(null);
+    const [anchorEl, setAnchorEl] = useState(null);
     const popperRef = useRef(null);
 
     const handleClick = (event) => {
         setAnchorEl(anchorEl ? null : event.currentTarget);
     };
 
+    // Handle click outside to close the popper
     const handleClickOutside = (event) => {
-        if (popperRef.current && !popperRef.current.contains(event.target)) {
+        if (popperRef.current && !popperRef.current.contains(event.target) && !event.currentTarget.contains(event.target)) {
             setAnchorEl(null);
         }
     };
@@ -1403,6 +1464,9 @@ const Map = () => {
         } else {
             document.removeEventListener('mousedown', handleClickOutside);
         }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
     }, [anchorEl]);
 
     const open = Boolean(anchorEl);
@@ -1517,12 +1581,13 @@ const Map = () => {
                                 },
                             },
                         }}
-                    ><IconButton
-                        onClick={handleSearchClick}
-                        id='myBtn'
-                        type="button"
-                        sx={{ p: '10px' }}
-                        aria-label="search">
+                    >
+                        <IconButton
+                            onClick={handleSearch}
+                            id='myBtn'
+                            type="button"
+                            sx={{ p: '10px' }}
+                            aria-label="search">
                             <SearchIcon />
                         </IconButton>
                     </Tooltip>
@@ -1533,6 +1598,7 @@ const Map = () => {
                         sx={{ ml: 1, flex: 1, fontFamily: 'Prompt' }}
                         placeholder="ระบุคำค้นหา เช่น ชื่อสถานที่"
                         inputProps={{ 'aria-label': 'ระบุคำค้นหา เช่น ชื่อสถานที่' }}
+                        onChange={handleSearch}
                     />
                     <Tooltip
                         title="ล้าง"
@@ -1560,18 +1626,21 @@ const Map = () => {
                     </Tooltip>
                 </Paper>
                 {showSuggestions && (
-                    <Paper sx={{ width: 408, }}>
+                    <Paper sx={{ width: 408, marginTop: '0.5rem', boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)' }}>
                         <Box
                             sx={{
-                                marginTop: '0.5rem',
-                                overflowY: 'auto',
-                                maxHeight: '20vh'
+                                // overflowY: 'auto',
+                                maxHeight: '30vh'
                             }}
                         >
                             {suggestions.length > 0 ? (
                                 <List id='place' sx={{ padding: '0.5rem' }}>
                                     {suggestions.map((item, index) => (
-                                        <ListItemButton onClick={() => navigate(item.name)} key={index}>
+                                        <ListItemButton
+                                            onClick={() => handleSuggestionClick(item.name)}
+                                            key={index}
+                                            selected={index === selectedIndex}
+                                        >
                                             {item.name}
                                         </ListItemButton>
                                     ))}
@@ -1688,6 +1757,51 @@ const Map = () => {
                     </Tooltip>
                 </FormGroup>
 
+                <Tooltip
+                    title="ขยายทั้งประเทศ" arrow placement="left"
+                    TransitionComponent={Zoom}
+                    componentsProps={{
+                        tooltip: {
+                            sx: {
+                                bgcolor: '#00B2FF',
+                                fontFamily: 'Prompt',
+                                '& .MuiTooltip-arrow': {
+                                    color: '#00B2FF',
+                                },
+                            },
+                        },
+                    }}
+                >
+                    <IconButton
+                        className="thZoom"
+                        onClick={thZoom}
+                        sx={{
+                            margin: '0.5rem',
+                            boxShadow: '0px 3.88883px 3.88883px rgba(0, 0, 0, 0.25)',
+                            '&:hover': {
+                                fill: "#00B2FF",
+                            },
+                            img: {
+                                width: '25px',
+                            },
+                        }}
+                    >
+                        <svg
+                            className="thSvg"
+                            width="800px"
+                            height="800px"
+                            viewBox="0 0 141 260"
+                            xmlns="http://www.w3.org/2000/svg"
+                            // xmlns:xlink="http://www.w3.org/1999/xlink"
+                            version="1.1"
+                        >
+                            <polygon points="129.539,74.861 123.279,62.39 123.967,52.692 107.962,37.209 98.146,37.304 87.832,45.295 78.396,39.154 66.777,47.642 59.072,50.843 61.182,36.617 63.885,31.329 62.913,17.791 52.717,16.937 49.635,13.215 49.113,2 35.101,5.841 25.5,13.618 6.411,18.905 2.025,34.625 8.545,50.961 17.318,60.446 20.566,69.977 19.333,89.23 12.647,93.213 13.951,98.785 29.244,117.587 29.932,126.502 37.543,150.734 24.668,168.588 12.908,207.734 20.685,210.626 39.677,232.132 40.601,237.49 47.572,239.6 58.455,246.524 62.936,247.425 63.387,258 70.239,253.542 75.479,256.174 80.198,247.14 74.08,241.663 71.306,237.206 62.652,236.803 50.654,228.978 47.548,220.964 49.991,218.072 47.857,209.204 43.328,205.932 40.08,194.219 31.757,192.891 29.363,176.081 35.385,164.96 36.523,159.104 44.182,144.167 43.115,125.08 45.272,122.733 50.56,121.571 60.447,121.997 60.518,136.318 74.341,135.157 84.086,140.966 86.386,134.185 83.446,125.056 93.167,109.384 98.692,106.183 127.096,104.665 136.913,101.891 138.975,82.638" />
+                        </svg>
+
+                    </IconButton>
+
+                </Tooltip>
+
                 {/* <Tooltip
                     title="ระบุตำแหน่งที่สนใจ" arrow placement="left"
                     TransitionComponent={Zoom}
@@ -1749,6 +1863,7 @@ const Map = () => {
                         <LayersIcon />
                     </IconButton>
                 </Tooltip>
+
                 <Popper className='Basemap'
                     TransitionComponent={Zoom}
                     placement="left"
@@ -1756,15 +1871,8 @@ const Map = () => {
                     open={open}
                     anchorEl={anchorEl}
                     ref={popperRef}>
-                    <Card
-                        sx={{
-                            zIndex: '50',
-                            marginRight: '1.5rem',
-                            padding: '0.25rem'
-                        }}>
-
-
-                        <Box
+                    <Card sx={{ marginRight: '1.5rem' }}>
+                        <Box className='imgMap'
                             style={{
                                 zIndex: '20',
                                 textAlign: 'center',
@@ -1816,6 +1924,7 @@ const Map = () => {
                         onClick={location}
                         sx={{
                             margin: '0.5rem',
+                            boxShadow: '0px 3.88883px 3.88883px rgba(0, 0, 0, 0.25)',
                             color: 'white',
                             '&:hover': {
                                 color: "#00B2FF",

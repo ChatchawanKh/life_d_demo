@@ -1,0 +1,226 @@
+:root {
+    z-index: 0;
+    --background: #8DBAFF;
+    --dash-width: calc(30% - 25px);
+    --dash-width-min: 80px;
+    --dash-white-primary: white;
+    --dash-dark-secondary: #2c3e50;
+    --dash-light-primary: #f5f6fa;
+    --dash-light-secondary: #8392a5;
+}
+
+body {
+    /* font-family: "Prompt", sans-serif; */
+    font-style: normal;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.Dashboard {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    z-index: 10;
+    left: 1rem;
+    margin-top: 2vh;
+    height: calc(100% - 4vh);
+    width: var(--dash-width);
+    background-color: rgba(255, 255, 255, 0.35);
+    border-radius: 16px;
+    filter: drop-shadow(2.57364px 2.57364px 2.57364px rgba(0, 0, 0, 0.25));
+    backdrop-filter: blur(3px);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.Dashboard-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+    padding: 20px;
+}
+
+.Dashboard-card-data {
+    background-color: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(3px);
+    width: 80%;
+    border-radius: 16px;
+    justify-items: center;
+    padding: 20px;
+}
+
+.Dashboard-card-data h1 {
+    font-family: 'Prompt';
+    font-style: normal;
+    font-weight: 700;
+    font-size: 17.8477px;
+    line-height: 22px;
+    text-align: center;
+    color: #919191;
+}
+
+.Dashboard-sortbylocation-date {
+    background-color: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(3px);
+    width: 80%;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.Dashboard-sortbylocation-date-head {
+    h1 {
+        font-family: 'Prompt';
+        font-style: normal;
+        font-weight: 500;
+        font-size: 24px;
+        line-height: 100%;
+        color: #303c46;
+        text-align: center;
+    }
+
+    p {
+        font-family: 'Prompt';
+        font-style: normal;
+        font-weight: 500;
+        font-size: 18px;
+        line-height: 100%;
+        color: #303c46;
+        text-align: center;
+    }
+}
+
+.input-by-pv-ap-tb, .input_by_lat_long {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.card-swipe-detail {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+.pm25-1day-card, .pm25-1hr-card, .pm10-1hr-card, .aqi-card {
+    width: auto;
+    height: 150px;
+    background-color: #8b8b8b;
+    border-radius: 16px;
+    padding: 10px; /* Add spacing around the content */
+    display: flex;
+}
+
+.pm25-1day-card-data, .pm25-1hr-card-data, .pm10-1hr-card-data, .aqi-card-data {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+
+    p {
+        font-family: 'Prompt';
+        font-style: normal;
+        font-weight: 500;
+        font-size: 16px;
+        line-height: 20px;
+        color: #303c46;
+        z-index: 1;
+        margin: 0;
+        padding: 0;
+        text-align: left;
+    }
+
+    h1 {
+        font-family: 'Prompt';
+        font-style: normal;
+        font-weight: 700;
+        font-size: 54px;
+        line-height: 54px;
+        color: #303c46;
+        text-align: left;
+        z-index: 1;
+        margin: 0;
+        padding-top: 15px;
+    }
+
+    span {
+        /* font-family: 'Prompt'; */
+        font-style: normal;
+        font-weight: 500;
+        font-size: 11px;
+        line-height: 14px;
+        color: #303c46;
+        text-align: center;
+        z-index: 1;
+        margin-top: 10px;
+    }
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        position: absolute;
+        border-radius: 16px;
+        left: 0px;
+        top: 0px;
+        z-index: 0;
+        opacity: 70%;
+    }
+}
+
+.Dashboard-sortby {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center; 
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.Dashboard-graph {
+    background-color: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(3px);
+    width: 80%;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.onLoadingGraph {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    p {
+        padding-left: 10px;
+    }
+}
+
+.Dashboard-graph h1 {
+    font-family: 'Prompt';
+    font-style: normal;
+    font-weight: 700;
+    font-size: 17.8477px;
+    line-height: 22px;
+    text-align: center;
+    color: #FEBF0E;
+}
+
+/* Hide scrollbar for Firefox */
+.Dashboard::-webkit-scrollbar {
+    display: none; /* Safari and Chrome */
+}
+
+.Dashboard {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
