@@ -529,107 +529,75 @@ const Map = () => {
     //     }
     // };
 
-    const insertAllhospital = () => {
+    const insertAllhospital = async () => {
         const map = sphereMapRef.current;
         map.Overlays.clear();
-        insertHospital();
-        insertClinic();
-        insertHealthSt();
+
+        const loadingAllHtml = `
+            <div id="loading-card-all" style="
+                position: absolute;
+                top: 20%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 9999;
+                background-color: #fff;
+                border-radius: 10px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                padding: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            ">
+                <div style="
+                    border: 3px solid #f3f3f3;
+                    border-radius: 50%;
+                    border-top: 3px solid #3498db;
+                    width: 24px;
+                    height: 24px;
+                    animation: spin 1s linear infinite;
+                    margin-right: 8px;
+                "></div>
+                <span style="font-size: 14px;">กำลังค้นหาสถานพยาบาลทั้งหมด...</span>
+            </div>
+            <style>
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            </style>
+        `;
+        document.body.insertAdjacentHTML('beforeend', loadingAllHtml);
+
+        // Then, run the functions and wait for them to complete
+        Promise.all([
+            insertHospital(),
+            insertClinic(),
+            insertHealthSt()
+        ]).then(() => {
+            const loadingCardAll = document.getElementById('loading-card-all');
+            if (loadingCardAll) loadingCardAll.remove();
+        });
     };
-
-    // const insertHospital = () => {
-    //     const map = sphereMapRef.current;
-    //     map.Overlays.clear();
-
-    //     navigator.geolocation.getCurrentPosition(
-    //         (position) => {
-    //             const { latitude, longitude } = position.coords;
-
-    //             axios.get(`https://api.sphere.gistda.or.th/services/poi/search?lon=${longitude}&lat=${latitude}&limit=20&tag=โรงพยาบาล&key=test2022`)
-    //                 .then(response => {
-    //                     const responseData = response.data.data;
-    //                     responseData.forEach(item => {
-    //                         const lat = item.lat
-    //                         const lon = item.lon
-    //                         const map = sphereMapRef.current;
-
-    //                         const iconHtml = renderToString(<LocalHospitalIcon
-    //                             style={{
-    //                                 color: 'white',
-    //                                 borderRadius: '50%',
-    //                                 padding: '2px',
-    //                                 backgroundColor: '#FF6968',
-    //                             }}
-    //                         />);
-
-    //                         var marker = new window.sphere.Marker({ lat: lat, lon: lon },
-    //                             {
-    //                                 title: 'Custom Marker',
-    //                                 icon: {
-    //                                     html: `
-    //                                 <div>
-    //                                 ${iconHtml}
-    //                                 </div>`,
-    //                                     offset: { x: 18, y: 21 }
-    //                                 }
-    //                             }
-    //                         );
-    //                         map.Overlays.add(marker);
-    //                         map.goTo({ center: { lat: latitude, lon: longitude }, zoom: 13 });
-    //                     });
-    //                 })
-    //         }
-    //     );
-    // };
-
-    // const insertClinic = () => {
-    //     const map = sphereMapRef.current;
-    //     map.Overlays.clear();
-    //     navigator.geolocation.getCurrentPosition(
-    //         (position) => {
-    //             const { latitude, longitude } = position.coords;
-
-    //             axios.get(`https://api.sphere.gistda.or.th/services/poi/search?lon=${longitude}&lat=${latitude}&limit=20&tag=Poly%20Clinic&key=test2022`)
-    //                 .then(response => {
-    //                     const responseData = response.data.data;
-    //                     responseData.forEach(item => {
-    //                         const lat = item.lat
-    //                         const lon = item.lon
-    //                         const map = sphereMapRef.current;
-
-    //                         const iconHtml = renderToString(<Vaccines
-    //                             style={{
-    //                                 color: 'white',
-    //                                 borderRadius: '50%',
-    //                                 backgroundColor: '#1DBEB8',
-    //                                 padding: '2px',
-    //                             }} />
-
-    //                         );
-
-    //                         var marker = new window.sphere.Marker({ lat: lat, lon: lon },
-    //                             {
-    //                                 title: 'Custom Marker',
-    //                                 icon: {
-    //                                     html: `
-    //                                 <div>
-    //                                 ${iconHtml}
-    //                                 </div>`,
-    //                                     offset: { x: 18, y: 21 }
-    //                                 }
-    //                             }
-    //                         );
-    //                         map.Overlays.add(marker);
-    //                         map.goTo({ center: { lat: latitude, lon: longitude }, zoom: 13 });
-    //                     });
-    //                 })
-    //         }
-    //     );
-    // };
 
     const insertHospital = async () => {
         const map = sphereMapRef.current;
         map.Overlays.clear();
+
+        const loadingHtml = `
+            <div id="loading-card" style="position: absolute; top: 20%; left: 50%; transform: translate(-50%, -50%); z-index: 15; background-color: #fff; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+                <div style="display: flex; align-items: center; justify-content: center; padding: 16px;">
+                    <div style="border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #3498db; width: 24px; height: 24px; animation: spin 1s linear infinite; margin-right: 8px;"></div>
+                    <span style="font-size: 14px;">กำลังค้นหาโรงพยาบาลใกล้ฉัน...</span>
+                </div>
+                <style>
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                </style>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', loadingHtml);
 
         navigator.geolocation.getCurrentPosition(async (position) => {
             const { latitude, longitude } = position.coords;
@@ -639,21 +607,25 @@ const Map = () => {
                 const responseData = poiResponse.data.data;
                 console.log(responseData);
 
-                for (const item of responseData) {
-                    const { lat, lon, name, address, tel } = item;
-                    console.log(name);
+                const routePromises = responseData.map(async (item) => {
+                    const { lat, lon } = item;
 
-                    let distance = null;
                     try {
                         const routeResponse = await axios.get(`https://api.sphere.gistda.or.th/services/route/route?flon=${longitude}&flat=${latitude}&tlon=${lon}&tlat=${lat}&mode=d&key=test2022`);
-                        distance = routeResponse.data.data.distance;
+                        return routeResponse.data.data.distance;
                     } catch (error) {
                         console.error('Error fetching route data:', error);
+                        return null;
                     }
+                });
+
+                const distances = await Promise.all(routePromises);
+
+                responseData.forEach((item, index) => {
+                    const { lat, lon, name, address, tel } = item;
+                    const distance = distances[index];
 
                     const googleMapUrl = `https://www.google.com/maps/dir/${latitude},${longitude}/${lat},${lon}/@${lat},${lon},8z/data=!3m2!1e3!4b1!4m2!4m1!3e0`;
-                    console.log(googleMapUrl);
-
                     const whereMapUrl = `https://where.gistda.or.th/route?dir=${latitude}-${longitude},${lat}-${lon}&result=true&swipe=1`;
 
                     const cardHtml = renderToString(
@@ -775,47 +747,42 @@ const Map = () => {
                         />
                     );
 
-                    const markerHtml =
-                        `
-                            <style>
-                                .marker-container {
-                                    position: absolute;
-                                    display: inline-block;
-                                }
-
-                                .hover-card {
-                                    visibility: hidden;
-                                    z-index: 0;
-                                    top: 0.5em;
-                                    position: absolute;
-                                    left: 50%;
-                                    transform: translateX(-50%);
-                                    transition: 0.25s ease-in-out;
-                                }
-
-                                .marker-icon:hover{
-                                    position: absolute;
-                                    z-index: 100;
-                                }
-
-                                .marker-container:hover .hover-card {
-                                    visibility: visible;
-                                    position: absolute;
-                                    z-index: 9999;
-                                }
-                            </style>
-
-                            <div class='marker-container'>
-                                <div class='marker-icon'>
-                                    ${iconHtml}
-                                </div>
-                                <div class='card-container'>
-                                    <div class='hover-card'>
-                                        ${cardHtml}
-                                    </div>
+                    const markerHtml = `
+                        <style>
+                            .marker-container {
+                                position: relative;
+                                display: inline-block;
+                                z-index: 20;
+                            }
+    
+                            .card-container {
+                                visibility: hidden;
+                                z-index: 100;
+                                top: -10em;
+                                position: absolute;
+                                left: 50%;
+                                transform: translateX(-50%);
+                                transition: 0.25s ease-in-out;
+                            }
+    
+                            .marker-container:hover .card-container {
+                                visibility: visible;
+                                position: absolute;
+                                z-index: 9999;
+                            }
+                        </style>
+    
+                        <div class='marker-container'>
+                            <div class='marker-icon'>
+                                ${iconHtml}
+                            </div>
+                            <div class='card-container'>
+                                <div class='hover-card' style="z-index: 1000">
+                                    ${cardHtml}
                                 </div>
                             </div>
-                            `;
+                        </div>
+                    `;
 
                     const marker = new window.sphere.Marker(
                         { lat, lon },
@@ -826,12 +793,23 @@ const Map = () => {
                             },
                         }
                     );
+
                     map.Overlays.add(marker);
-                }
+                });
 
                 map.goTo({ center: { lat: latitude, lon: longitude }, zoom: 13 });
+
+                const loadingCard = document.getElementById('loading-card');
+                if (loadingCard) {
+                    loadingCard.remove();
+                }
             } catch (error) {
                 console.error('Error fetching POI data:', error);
+
+                const loadingCard = document.getElementById('loading-card');
+                if (loadingCard) {
+                    loadingCard.remove();
+                }
             }
         });
     };
@@ -839,6 +817,23 @@ const Map = () => {
     const insertClinic = async () => {
         const map = sphereMapRef.current;
         map.Overlays.clear();
+
+        // Show the loading card
+        const loadingHtml = `
+            <div id="loading-card" style="position: absolute; top: 20%; left: 50%; transform: translate(-50%, -50%); z-index: 15; background-color: #fff; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+                <div style="display: flex; align-items: center; justify-content: center; padding: 16px;">
+                    <div style="border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #3498db; width: 24px; height: 24px; animation: spin 1s linear infinite; margin-right: 8px;"></div>
+                    <span style="font-size: 14px;">กำลังค้นหาคลินิกใกล้ฉัน...</span>
+                </div>
+                <style>
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                </style>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', loadingHtml);
 
         navigator.geolocation.getCurrentPosition(async (position) => {
             const { latitude, longitude } = position.coords;
@@ -848,21 +843,25 @@ const Map = () => {
                 const responseData = poiResponse.data.data;
                 console.log(responseData);
 
-                for (const item of responseData) {
-                    const { lat, lon, name, address, tel } = item;
-                    console.log(name);
+                const routePromises = responseData.map(async (item) => {
+                    const { lat, lon } = item;
 
-                    let distance = null;
                     try {
                         const routeResponse = await axios.get(`https://api.sphere.gistda.or.th/services/route/route?flon=${longitude}&flat=${latitude}&tlon=${lon}&tlat=${lat}&mode=d&key=test2022`);
-                        distance = routeResponse.data.data.distance;
+                        return routeResponse.data.data.distance;
                     } catch (error) {
                         console.error('Error fetching route data:', error);
+                        return null;
                     }
+                });
+
+                const distances = await Promise.all(routePromises);
+
+                responseData.forEach((item, index) => {
+                    const { lat, lon, name, address, tel } = item;
+                    const distance = distances[index];
 
                     const googleMapUrl = `https://www.google.com/maps/dir/${latitude},${longitude}/${lat},${lon}/@${lat},${lon},8z/data=!3m2!1e3!4b1!4m2!4m1!3e0`;
-                    console.log(googleMapUrl);
-
                     const whereMapUrl = `https://where.gistda.or.th/route?dir=${latitude}-${longitude},${lat}-${lon}&result=true&swipe=1`;
 
                     const cardHtml = renderToString(
@@ -984,43 +983,42 @@ const Map = () => {
                         />
                     );
 
-                    const markerHtml =
-                        `
-                            <style>
-                                .marker-container {
-                                    position: relative;
-                                    display: inline-block;
-                                    z-index: 20;
-                                }
-
-                                .card-container {
-                                    visibility: hidden;
-                                    z-index: 100;
-                                    top: -10em;
-                                    position: absolute;
-                                    left: 50%;
-                                    transform: translateX(-50%);
-                                    transition: 0.25s ease-in-out;
-                                }
-
-                                .marker-container:hover .card-container {
-                                    visibility: visible;
-                                    position: absolute;
-                                    z-index: 9999;
-                                }
-                            </style>
-
-                            <div class='marker-container'>
-                                <div class='marker-icon'>
-                                    ${iconHtml}
-                                </div>
-                                <div class='card-container'>
-                                    <div class='hover-card' style="z-index: 1000">
-                                        ${cardHtml}
-                                    </div>
+                    const markerHtml = `
+                        <style>
+                            .marker-container {
+                                position: relative;
+                                display: inline-block;
+                                z-index: 20;
+                            }
+    
+                            .card-container {
+                                visibility: hidden;
+                                z-index: 100;
+                                top: -10em;
+                                position: absolute;
+                                left: 50%;
+                                transform: translateX(-50%);
+                                transition: 0.25s ease-in-out;
+                            }
+    
+                            .marker-container:hover .card-container {
+                                visibility: visible;
+                                position: absolute;
+                                z-index: 9999;
+                            }
+                        </style>
+    
+                        <div class='marker-container'>
+                            <div class='marker-icon'>
+                                ${iconHtml}
+                            </div>
+                            <div class='card-container'>
+                                <div class='hover-card' style="z-index: 1000">
+                                    ${cardHtml}
                                 </div>
                             </div>
-                            `;
+                        </div>
+                    `;
 
                     const marker = new window.sphere.Marker(
                         { lat, lon },
@@ -1031,12 +1029,25 @@ const Map = () => {
                             },
                         }
                     );
+
                     map.Overlays.add(marker);
-                }
+                });
 
                 map.goTo({ center: { lat: latitude, lon: longitude }, zoom: 13 });
+
+                // Remove the loading card once markers are added
+                const loadingCard = document.getElementById('loading-card');
+                if (loadingCard) {
+                    loadingCard.remove();
+                }
             } catch (error) {
                 console.error('Error fetching POI data:', error);
+
+                // Remove the loading card in case of an error
+                const loadingCard = document.getElementById('loading-card');
+                if (loadingCard) {
+                    loadingCard.remove();
+                }
             }
         });
     };
@@ -1044,6 +1055,22 @@ const Map = () => {
     const insertHealthSt = async () => {
         const map = sphereMapRef.current;
         map.Overlays.clear();
+
+        const loadingHtml = `
+            <div id="loading-card" style="position: absolute; top: 20%; left: 50%; transform: translate(-50%, -50%); z-index: 15; background-color: #fff; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+                <div style="display: flex; align-items: center; justify-content: center; padding: 16px;">
+                    <div style="border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #3498db; width: 24px; height: 24px; animation: spin 1s linear infinite; margin-right: 8px;"></div>
+                    <span style="font-size: 14px;">กำลังค้นหาสถานีอนามัยใกล้ฉัน...</span>
+                </div>
+                <style>
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                </style>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', loadingHtml);
 
         navigator.geolocation.getCurrentPosition(async (position) => {
             const { latitude, longitude } = position.coords;
@@ -1053,21 +1080,25 @@ const Map = () => {
                 const responseData = poiResponse.data.data;
                 console.log(responseData);
 
-                for (const item of responseData) {
-                    const { lat, lon, name, address, tel } = item;
-                    console.log(name);
+                const routePromises = responseData.map(async (item) => {
+                    const { lat, lon } = item;
 
-                    let distance = null;
                     try {
                         const routeResponse = await axios.get(`https://api.sphere.gistda.or.th/services/route/route?flon=${longitude}&flat=${latitude}&tlon=${lon}&tlat=${lat}&mode=d&key=test2022`);
-                        distance = routeResponse.data.data.distance;
+                        return routeResponse.data.data.distance;
                     } catch (error) {
                         console.error('Error fetching route data:', error);
+                        return null;
                     }
+                });
+
+                const distances = await Promise.all(routePromises);
+
+                responseData.forEach((item, index) => {
+                    const { lat, lon, name, address, tel } = item;
+                    const distance = distances[index];
 
                     const googleMapUrl = `https://www.google.com/maps/dir/${latitude},${longitude}/${lat},${lon}/@${lat},${lon},8z/data=!3m2!1e3!4b1!4m2!4m1!3e0`;
-                    console.log(googleMapUrl);
-
                     const whereMapUrl = `https://where.gistda.or.th/route?dir=${latitude}-${longitude},${lat}-${lon}&result=true&swipe=1`;
 
                     const cardHtml = renderToString(
@@ -1189,43 +1220,42 @@ const Map = () => {
                         />
                     );
 
-                    const markerHtml =
-                        `
-                            <style>
-                                .marker-container {
-                                    position: relative;
-                                    display: inline-block;
-                                    z-index: 20;
-                                }
-
-                                .card-container {
-                                    visibility: hidden;
-                                    z-index: 100;
-                                    top: -10em;
-                                    position: absolute;
-                                    left: 50%;
-                                    transform: translateX(-50%);
-                                    transition: 0.25s ease-in-out;
-                                }
-
-                                .marker-container:hover .card-container {
-                                    visibility: visible;
-                                    position: absolute;
-                                    z-index: 9999;
-                                }
-                            </style>
-
-                            <div class='marker-container'>
-                                <div class='marker-icon'>
-                                    ${iconHtml}
-                                </div>
-                                <div class='card-container'>
-                                    <div class='hover-card' style="z-index: 1000">
-                                        ${cardHtml}
-                                    </div>
+                    const markerHtml = `
+                        <style>
+                            .marker-container {
+                                position: relative;
+                                display: inline-block;
+                                z-index: 20;
+                            }
+    
+                            .card-container {
+                                visibility: hidden;
+                                z-index: 100;
+                                top: -10em;
+                                position: absolute;
+                                left: 50%;
+                                transform: translateX(-50%);
+                                transition: 0.25s ease-in-out;
+                            }
+    
+                            .marker-container:hover .card-container {
+                                visibility: visible;
+                                position: absolute;
+                                z-index: 9999;
+                            }
+                        </style>
+    
+                        <div class='marker-container'>
+                            <div class='marker-icon'>
+                                ${iconHtml}
+                            </div>
+                            <div class='card-container'>
+                                <div class='hover-card' style="z-index: 1000">
+                                    ${cardHtml}
                                 </div>
                             </div>
-                            `;
+                        </div>
+                    `;
 
                     const marker = new window.sphere.Marker(
                         { lat, lon },
@@ -1236,12 +1266,25 @@ const Map = () => {
                             },
                         }
                     );
+
                     map.Overlays.add(marker);
-                }
+                });
 
                 map.goTo({ center: { lat: latitude, lon: longitude }, zoom: 13 });
+
+                // Remove the loading card once markers are added
+                const loadingCard = document.getElementById('loading-card');
+                if (loadingCard) {
+                    loadingCard.remove();
+                }
             } catch (error) {
                 console.error('Error fetching POI data:', error);
+
+                // Remove the loading card in case of an error
+                const loadingCard = document.getElementById('loading-card');
+                if (loadingCard) {
+                    loadingCard.remove();
+                }
             }
         });
     };
@@ -1406,35 +1449,19 @@ const Map = () => {
 
     const thZoom = () => {
         const map = sphereMapRef.current;
-        map.goTo({ center: { lon: 100.590204861417, lat: 13.861545245028843 }, zoom: 5 });
+        map.goTo({ center: { lon: 100.590204861417, lat: 13.861545245028843 }, zoom: 4.8 });
     };
 
     const zoomin = () => {
         const map = sphereMapRef.current;
-        if (map && typeof map.zoom === 'function') {
-            try {
-                const currentZoom = map.zoom();
-                map.zoom(currentZoom + 1);
-            } catch (error) {
-                console.error('Zoom in error:', error);
-            }
-        } else {
-            console.error('Zoom in functionality is not available.');
-        }
+        const currentZoom = map.zoom();
+        map.zoom(currentZoom + 1)
     };
 
     const zoomout = () => {
         const map = sphereMapRef.current;
-        if (map && typeof map.zoom === 'function') {
-            try {
-                const currentZoom = map.zoom();
-                map.zoom(currentZoom - 1);
-            } catch (error) {
-                console.error('Zoom out error:', error);
-            }
-        } else {
-            console.error('Zoom out functionality is not available.');
-        }
+        const currentZoom = map.zoom();
+        map.zoom(currentZoom - 1)
     };
 
     const StreetBase = () => {
@@ -1523,7 +1550,6 @@ const Map = () => {
                                 />
                             }
                         />
-
                         <Chip
                             onClick={insertClinic}
                             size="medium"
@@ -1564,36 +1590,10 @@ const Map = () => {
                         display: 'flex',
                         alignItems: 'center',
                         width: 400,
-                        boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25), inset 0px 4px 4px rgba(0, 0, 0, 0.25)'
+                        boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25), inset 0px 4px 4px rgba(0, 0, 0, 0.25)',
+                        borderRadius: '20px'
                     }}
                 >
-                    <Tooltip
-                        title="ค้นหา"
-                        arrow
-                        placement="bottom"
-                        TransitionComponent={Zoom}
-                        componentsProps={{
-                            tooltip: {
-                                sx: {
-                                    color: 'black',
-                                    bgcolor: 'white',
-                                    fontFamily: 'Prompt',
-                                    '& .MuiTooltip-arrow': {
-                                        color: 'white',
-                                    },
-                                },
-                            },
-                        }}
-                    >
-                        <IconButton
-                            onClick={handleSearch}
-                            id='myBtn'
-                            type="button"
-                            sx={{ p: '10px' }}
-                            aria-label="search">
-                            <SearchIcon />
-                        </IconButton>
-                    </Tooltip>
                     <InputBase
                         id='result'
                         type="text"
@@ -1625,6 +1625,33 @@ const Map = () => {
                             onClick={handleClearClick}
                         >
                             <ClearIcon />
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip
+                        title="ค้นหา"
+                        arrow
+                        placement="bottom"
+                        TransitionComponent={Zoom}
+                        componentsProps={{
+                            tooltip: {
+                                sx: {
+                                    color: 'black',
+                                    bgcolor: 'white',
+                                    fontFamily: 'Prompt',
+                                    '& .MuiTooltip-arrow': {
+                                        color: 'white',
+                                    },
+                                },
+                            },
+                        }}
+                    >
+                        <IconButton
+                            onClick={handleSearch}
+                            id='myBtn'
+                            type="button"
+                            sx={{ p: '10px' }}
+                            aria-label="search">
+                            <SearchIcon />
                         </IconButton>
                     </Tooltip>
                 </Paper>

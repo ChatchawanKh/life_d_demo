@@ -101,11 +101,11 @@ html {
 
 
 .maplibregl-popup-close-button {
-  border-color: transparent;
-  font-size: 40px;
-  margin-top: -1rem;
-  height: 0;
-  width: auto;
+  border-color: transparent!important;
+  font-size: 40px!important;
+  margin-top: -1rem!important;
+  height: 0!important;
+  width: auto!important;
 }
 
 .maplibregl-popup-close-button:hover {
