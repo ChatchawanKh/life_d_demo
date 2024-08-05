@@ -529,12 +529,20 @@ const Map = () => {
     //     }
     // };
 
+    let loadingCardAdded = false;
+
     const insertAllhospital = async () => {
         const map = sphereMapRef.current;
         map.Overlays.clear();
 
-        const loadingAllHtml = `
-            <div id="loading-card-all" style="
+        // Function to show the loading card
+        const showLoadingCard = () => {
+            if (loadingCardAdded) {
+                return; // Prevent adding the loading card again
+            }
+
+            const loadingAllHtml = `
+            <div class="all" style="
                 position: absolute;
                 top: 20%;
                 left: 50%;
@@ -557,7 +565,7 @@ const Map = () => {
                     animation: spin 1s linear infinite;
                     margin-right: 8px;
                 "></div>
-                <span style="font-size: 14px;">กำลังค้นหาสถานพยาบาลทั้งหมด...</span>
+                <span style="font-size: 14px;">กำลังค้นหาสถานพยาบาลทั้งหมดใกล้ฉัน...</span>
             </div>
             <style>
                 @keyframes spin {
@@ -566,18 +574,29 @@ const Map = () => {
                 }
             </style>
         `;
-        document.body.insertAdjacentHTML('beforeend', loadingAllHtml);
 
-        // Then, run the functions and wait for them to complete
-        Promise.all([
+            document.body.insertAdjacentHTML('beforeend', loadingAllHtml);
+            loadingCardAdded = true;
+
+            // Remove the loading card after a delay
+            setTimeout(() => {
+                const loadingCardAllElements = document.getElementsByClassName('all');
+                while (loadingCardAllElements.length > 0) {
+                    loadingCardAllElements[0].remove();
+                }
+                loadingCardAdded = false;
+            }, 3500);
+        };
+
+        showLoadingCard();
+
+        await Promise.all([
             insertHospital(),
             insertClinic(),
             insertHealthSt()
-        ]).then(() => {
-            const loadingCardAll = document.getElementById('loading-card-all');
-            if (loadingCardAll) loadingCardAll.remove();
-        });
+        ]);
     };
+
 
     const insertHospital = async () => {
         const map = sphereMapRef.current;
