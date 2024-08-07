@@ -100,7 +100,8 @@ html {
 }
 
 
-.maplibregl-popup-close-button {
+.maplibregl-popup-close-button, 
+.mapboxgl-popup-close-button {
   border-color: transparent!important;
   font-size: 40px!important;
   margin-top: -1rem!important;
@@ -124,7 +125,9 @@ html {
   background-image: url('src/Icon/Marker_Animation.gif') !important;
 }
 
-
+#value{
+  line-height: 0;
+}
 
 
 

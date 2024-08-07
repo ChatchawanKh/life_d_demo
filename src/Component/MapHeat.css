@@ -1,0 +1,213 @@
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0px;
+  height: 100%;
+}
+
+#map{
+  height: 100%;
+}
+
+#root {
+    height: 100%;
+}
+
+.location,
+.basemap,
+.thZoom,
+.zoomout,
+.zoomin {
+  background-color: #ff9900 !important;
+}
+
+.location:hover,
+.basemap:hover,
+.thZoom:hover,
+.zoomout:hover,
+.zoomin:hover {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+.thZoom:hover svg{
+  fill: #ff9900;
+}
+
+.Box {
+  button{
+    background-color: #ff9900;
+    border-radius: 15px;
+  }
+
+  .remove{
+    background-color: #fff;
+  }
+
+  margin: 0.25rem;
+
+  position: absolute;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  -webkit-box-pack: center;
+  justify-content: center;
+  -webkit-box-align: center;
+  align-items: end;
+  top: 18rem;
+  right: 0.75rem;
+}
+
+.Box {
+button{
+  background-color: #ff9900;
+  border-radius: 15px;
+}
+
+.infoIcon{
+  background-color: #fff;
+  bottom: 0;
+}
+
+margin: 0.25rem;
+
+position: absolute;
+z-index: 10;
+display: flex;
+flex-direction: column;
+-webkit-box-pack: center;
+justify-content: center;
+-webkit-box-align: center;
+align-items: end;
+top: 18rem;
+right: 0.75rem;
+}
+
+.Basemap {
+z-index: 12;
+}
+
+.Sat img {
+transition: transform 0.5s, filter 0.5s ease-in-out;
+}
+
+.Sat:hover img {
+transform: scale(1.1);
+}
+
+.Street img {
+transition: transform 0.5s, filter 0.5s ease-in-out;
+}
+
+.Street:hover img {
+transform: scale(1.1);
+}
+
+.thSvg {
+fill: #fff;
+transition: fill 0.3s ease;
+width: 25px;
+height: 25px;
+}
+
+.thSvg:hover {
+fill: #ff9900 !important;
+width: 25px;
+height: 25px;
+}
+
+
+.maplibregl-popup-close-button, 
+.mapboxgl-popup-close-button {
+border-color: transparent!important;
+font-size: 40px!important;
+margin-top: -1rem!important;
+height: 0!important;
+width: auto!important;
+}
+
+.maplibregl-popup-close-button:hover {
+background-color: transparent !important;
+}
+
+.maplibregl-popup-content {
+background-color: rgba(255, 255, 255, 0.9) !important;
+border-radius: 8px !important;
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+
+}
+
+.maplibregl-popup-tip .mapboxgl-popup-tip {
+background-color: rgba(255, 255, 255, 0.9) !important;
+background-image: url('src/Icon/Marker_Animation.gif') !important;
+}
+
+#value{
+line-height: 0;
+}
+
+/* .MuiMobileStepper-progress {
+  border-radius: '10px' !important;
+/* } */
+
+.HIDsat,
+.HIDmodel,
+.HIDtmd{
+  color: #FF9900!important;
+  background-color: #fff !important;
+  width: 35px !important;
+  height: 35px !important;
+  border-radius: 50%!important;
+}
+
+.HIDsat:hover,
+.HIDmodel:hover,
+.HIDtmd:hover {
+  transform: scale(1.25);
+  background: linear-gradient(135.12deg, #FF8A00 3.3%, #FFBC57 45.86%, #DDA0DD 94.15%) !important;
+  color: #fff !important;
+}
+
+/* styles.css */
+@keyframes blinkShadow {
+  0% {
+      box-shadow: 0 0 10px rgba(255, 69, 0, 0.7);
+  }
+  50% {
+      box-shadow: 0 0 45px rgba(255, 99, 71, 1);
+  }
+  100% {
+      box-shadow: 0 0 10px rgba(255, 69, 0, 0.7);
+  }
+}
+
+
+
+/* .heatModel:hover {
+  box-shadow: 0 0 0 5px rgba(#000,.4) , 0 0 0 10px  #f05f75!important;
+} */
+
+/* box-shadow: 0 0 0 5px rgba(#000,.4) , 0 0 0 10px  #f05f75!important; */
+/* .HIDsat:hover{
+  color: #DDA0DD!important;
+}
+
+.HIDmodel:hover{
+  color: #FF6F00!important;
+}
+
+.HIDtmd:hover{
+  color:#FF4500!important;
+} */
+
+
+
+
+
+
+
+
+
+
+

@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useRef, useState } from "react";
 import axios from 'axios';
-import "./Map.css"
+import "./MapHeat.css"
 import { renderToString } from 'react-dom/server';
 // import { styled, css } from '@mui/system';
 
@@ -25,12 +25,16 @@ import Vaccines from '@mui/icons-material/Vaccines';
 import MedicalInformation from '@mui/icons-material/MedicalInformation';
 import InfoIcon from '@mui/icons-material/Info';
 // import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+// import Backdrop from '@mui/material/Backdrop';
+import SpeedDial from '@mui/material/SpeedDial';
+// import SpeedDialIcon from '@mui/material/SpeedDialIcon';
+import SpeedDialAction from '@mui/material/SpeedDialAction';
 
 //Icon
 import IconButton from '@mui/material/IconButton';
 import FormGroup from '@mui/material/FormGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Switch from '@mui/material/Switch';
+// import FormControlLabel from '@mui/material/FormControlLabel';
+// import Switch from '@mui/material/Switch';
 // import WhereToVoteIcon from '@mui/icons-material/WhereToVote';
 // import CircularProgress from '@mui/material/CircularProgress';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
@@ -43,6 +47,13 @@ import ClearIcon from '@mui/icons-material/Clear';
 import WrongLocationIcon from '@mui/icons-material/WrongLocation';
 import GoogleIcon from '@mui/icons-material/Google';
 // import THsvg from '/src/Icon/thailand.svg'
+import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
+import SatelliteAltIcon from '@mui/icons-material/SatelliteAlt';
+import ModelTrainingIcon from '@mui/icons-material/ModelTraining';
+import Tmd from '/src/Icon/meteo.png'
+
+
+
 
 const Map = () => {
     const mapRef = useRef(null);
@@ -251,32 +262,32 @@ const Map = () => {
                                     document.getElementById('level').innerHTML = `<span style="color: ${color}; font-weight: bold; font-size: 30px;"> ${level}</span>`
 
 
-                                    // const encodedPv = encodeURIComponent(pv);
-                                    // // console.log(encodedPv);
+                                    const encodedPv = encodeURIComponent(pv);
+                                    // console.log(encodedPv);
 
-                                    // axios.get(`https://www.tmd.go.th/api/WeatherForecast7Day/weather-forecast-7day-by-province`, {
-                                    //     params: {
-                                    //         Sorting: 'weatherForecast7Day.recordTime asc',
-                                    //         FilterText: encodedPv,
-                                    //         MaxResultCount: 7,
-                                    //         culture: 'th-TH'
-                                    //     }
-                                    // })
-                                    //     .then(response => {
-                                    //         console.log(response.data);
-                                    //     })
-                                    //     .catch(error => {
-                                    //         if (error.response) {
-                                    //             // The server responded with a status code outside the 2xx range
-                                    //             console.log('Error response:', error.response);
-                                    //         } else if (error.request) {
-                                    //             // The request was made but no response was received
-                                    //             console.log('Error request:', error.request);
-                                    //         } else {
-                                    //             // Something happened in setting up the request that triggered an error
-                                    //             console.log('Error message:', error.message);
-                                    //         }
-                                    //     });
+                                    axios.get(`https://www.tmd.go.th/api/WeatherForecast7Day/weather-forecast-7day-by-province`, {
+                                        params: {
+                                            Sorting: 'weatherForecast7Day.recordTime asc',
+                                            FilterText: encodedPv,
+                                            MaxResultCount: 7,
+                                            culture: 'th-TH'
+                                        }
+                                    })
+                                        .then(response => {
+                                            console.log(response.data);
+                                        })
+                                        .catch(error => {
+                                            if (error.response) {
+                                                // The server responded with a status code outside the 2xx range
+                                                console.log('Error response:', error.response);
+                                            } else if (error.request) {
+                                                // The request was made but no response was received
+                                                console.log('Error request:', error.request);
+                                            } else {
+                                                // Something happened in setting up the request that triggered an error
+                                                console.log('Error message:', error.message);
+                                            }
+                                        });
                                 })
                         }
                     );
@@ -303,124 +314,124 @@ const Map = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const handlePM25Toggle = (e) => {
-        const sphere = window.sphere;
-        const map = sphereMapRef.current;
+    // const handlePM25Toggle = (e) => {
+    //     const sphere = window.sphere;
+    //     const map = sphereMapRef.current;
 
-        const isChecked = e.target.checked;
-        setIsPM25Checked(isChecked);
+    //     const isChecked = e.target.checked;
+    //     setIsPM25Checked(isChecked);
 
-        if (isChecked) {
-            console.log('Adding PM2.5 WMS layer');
-            const pm25wms = new sphere.Layer('0', {
-                type: sphere.LayerType.WMS,
-                url: "https://service-proxy-765rkyfg3q-as.a.run.app/api_geoserver/geoserver/pm25_hourly_raster_24hr/wms",
-                zoomRange: { min: 1, max: 15 },
-                zIndex: 5,
-                opacity: 1,
-                id: 'layer_24pm25'
-            });
-            map.Layers.add(pm25wms);
-            setPm25wmsLayer(pm25wms);
+    //     if (isChecked) {
+    //         console.log('Adding PM2.5 WMS layer');
+    //         const pm25wms = new sphere.Layer('0', {
+    //             type: sphere.LayerType.WMS,
+    //             url: "https://service-proxy-765rkyfg3q-as.a.run.app/api_geoserver/geoserver/pm25_hourly_raster_24hr/wms",
+    //             zoomRange: { min: 1, max: 15 },
+    //             zIndex: 5,
+    //             opacity: 1,
+    //             id: 'layer_24pm25'
+    //         });
+    //         map.Layers.add(pm25wms);
+    //         setPm25wmsLayer(pm25wms);
 
-            const handleMapClick = (location) => {
-                const lat = location.lat;
-                const lon = location.lon;
+    //         const handleMapClick = (location) => {
+    //             const lat = location.lat;
+    //             const lon = location.lon;
 
-                axios.get(`https://pm25.gistda.or.th/rest/getPm25byLocation?lat=${lat}&lng=${lon}`)
-                    .then(response => {
-                        const data = response.data.data;
-                        const pm25 = data['pm25'];
-                        const tb = data.loc['tb_tn'];
-                        const ap = data.loc['ap_tn'];
-                        const pv = data.loc['pv_tn'];
-                        const date = data.datetimeThai['dateThai'];
-                        const time = data.datetimeThai['timeThai'];
+    //             axios.get(`https://pm25.gistda.or.th/rest/getPm25byLocation?lat=${lat}&lng=${lon}`)
+    //                 .then(response => {
+    //                     const data = response.data.data;
+    //                     const pm25 = data['pm25'];
+    //                     const tb = data.loc['tb_tn'];
+    //                     const ap = data.loc['ap_tn'];
+    //                     const pv = data.loc['pv_tn'];
+    //                     const date = data.datetimeThai['dateThai'];
+    //                     const time = data.datetimeThai['timeThai'];
 
-                        let color;
-                        let level;
-                        if (pm25 < 15) {
-                            color = '#4FAFBF';
-                            level = 'ดีมาก';
-                        } else if (pm25 > 15 && pm25 <= 25) {
-                            color = '#9FCF62';
-                            level = 'ดี';
-                        } else if (pm25 > 25 && pm25 <= 37.5) {
-                            color = '#F1E151';
-                            level = 'ปานกลาง';
-                        } else if (pm25 > 37.5 && pm25 <= 75) {
-                            color = '#F1A53B';
-                            level = 'เริ่มมีผล';
-                        } else {
-                            color = '#EB4E47';
-                            level = 'มีผล';
-                        }
+    //                     let color;
+    //                     let level;
+    //                     if (pm25 < 15) {
+    //                         color = '#4FAFBF';
+    //                         level = 'ดีมาก';
+    //                     } else if (pm25 > 15 && pm25 <= 25) {
+    //                         color = '#9FCF62';
+    //                         level = 'ดี';
+    //                     } else if (pm25 > 25 && pm25 <= 37.5) {
+    //                         color = '#F1E151';
+    //                         level = 'ปานกลาง';
+    //                     } else if (pm25 > 37.5 && pm25 <= 75) {
+    //                         color = '#F1A53B';
+    //                         level = 'เริ่มมีผล';
+    //                     } else {
+    //                         color = '#EB4E47';
+    //                         level = 'มีผล';
+    //                     }
 
-                        const pm25Formatted = pm25.toFixed(2);
+    //                     const pm25Formatted = pm25.toFixed(2);
 
-                        const loadingHtml = `
-                                    <div style="display: flex; align-items: center; justify-content: center; padding: 16px;">
-                                        <div style="border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #3498db; width: 24px; height: 24px; animation: spin 1s linear infinite; margin-right: 8px;"></div>
-                                        <span style="font-size: 14px;">กำลังค้นหาข้อมูล...</span>
-                                    </div>
-                                    <style>
-                                        @keyframes spin {
-                                            0% { transform: rotate(0deg); }
-                                            100% { transform: rotate(360deg); }
-                                        }
-                                    </style>
-                                `;
+    //                     const loadingHtml = `
+    //                                 <div style="display: flex; align-items: center; justify-content: center; padding: 16px;">
+    //                                     <div style="border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #3498db; width: 24px; height: 24px; animation: spin 1s linear infinite; margin-right: 8px;"></div>
+    //                                     <span style="font-size: 14px;">กำลังค้นหาข้อมูล...</span>
+    //                                 </div>
+    //                                 <style>
+    //                                     @keyframes spin {
+    //                                         0% { transform: rotate(0deg); }
+    //                                         100% { transform: rotate(360deg); }
+    //                                     }
+    //                                 </style>
+    //                             `;
 
-                        const popupDetail = `
-                                <div style="padding:0.5rem;">
-                                    <span id="location" style="font-size: 16px; font-weight: bold;">${tb} ${ap} ${pv}</span><br />
-                                    <span style="font-size: 14px;">สภาพอากาศวันนี้</span><br />
-                                    <span style="font-size: 12px;">ค่า PM2.5</span><br />
-                                    <span id='value' style={{ fontWeight: 'bold', fontSize: '30px' }}><span style="color: ${color}; font-weight: bold; font-size: 30px;">${pm25Formatted} </span></span>
-                                    <span style="font-size: 10px;">µg./m3</span>
-                                    <span id="level"><span style="color: ${color}; font-weight: bold; font-size: 30px;"> ${level}</span><br />
-                                    <span id="update" style="font-size: 12px; color: #a6a6a6;">อัพเดทล่าสุด ${date} ${time}</span>
-                                </div>
-                            `;
+    //                     const popupDetail = `
+    //                             <div style="padding:0.5rem;">
+    //                                 <span id="location" style="font-size: 16px; font-weight: bold;">${tb} ${ap} ${pv}</span><br />
+    //                                 <span style="font-size: 14px;">สภาพอากาศวันนี้</span><br />
+    //                                 <span style="font-size: 12px;">ค่า PM2.5</span><br />
+    //                                 <span id='value' style={{ fontWeight: 'bold', fontSize: '30px' }}><span style="color: ${color}; font-weight: bold; font-size: 30px;">${pm25Formatted} </span></span>
+    //                                 <span style="font-size: 10px;">µg./m3</span>
+    //                                 <span id="level"><span style="color: ${color}; font-weight: bold; font-size: 30px;"> ${level}</span><br />
+    //                                 <span id="update" style="font-size: 12px; color: #a6a6a6;">อัพเดทล่าสุด ${date} ${time}</span>
+    //                             </div>
+    //                         `;
 
-                        var popUp = new sphere.Popup({ lon: lon, lat: lat }, {
-                            title: `
-                                <span style='font-weight: 500; margin-left: 0.5rem;'> ตำแหน่งที่สนใจ</span>
-                                <span style='font-weight: 400; color: #a6a6a6;'>
-                                    ${lat.toFixed(4)}, ${lon.toFixed(4)}
-                                </span>
-                            `
-                            ,
-                            detail: loadingHtml,
-                            loadDetail: updateDetail,
-                            size: { width: '100%' },
-                            closable: true
-                        });
+    //                     var popUp = new sphere.Popup({ lon: lon, lat: lat }, {
+    //                         title: `
+    //                             <span style='font-weight: 500; margin-left: 0.5rem;'> ตำแหน่งที่สนใจ</span>
+    //                             <span style='font-weight: 400; color: #a6a6a6;'>
+    //                                 ${lat.toFixed(4)}, ${lon.toFixed(4)}
+    //                             </span>
+    //                         `
+    //                         ,
+    //                         detail: loadingHtml,
+    //                         loadDetail: updateDetail,
+    //                         size: { width: '100%' },
+    //                         closable: true
+    //                     });
 
-                        function updateDetail(element) {
-                            setTimeout(function () {
-                                element.innerHTML = popupDetail;
-                            }, 1000);
-                        }
-                        map.Overlays.add(popUp);
-                    });
-            };
+    //                     function updateDetail(element) {
+    //                         setTimeout(function () {
+    //                             element.innerHTML = popupDetail;
+    //                         }, 1000);
+    //                     }
+    //                     map.Overlays.add(popUp);
+    //                 });
+    //         };
 
-            map.Event.bind(sphere.EventName.Click, handleMapClick);
-            setPm25ClickHandler(() => handleMapClick);
+    //         map.Event.bind(sphere.EventName.Click, handleMapClick);
+    //         setPm25ClickHandler(() => handleMapClick);
 
-        } else {
-            if (pm25wmsLayer) {
-                map.Layers.remove(pm25wmsLayer);
-                setPm25wmsLayer(null);
-            }
+    //     } else {
+    //         if (pm25wmsLayer) {
+    //             map.Layers.remove(pm25wmsLayer);
+    //             setPm25wmsLayer(null);
+    //         }
 
-            if (pm25ClickHandler) {
-                map.Event.unbind(sphere.EventName.Click, pm25ClickHandler);
-                setPm25ClickHandler(null);
-            }
-        }
-    };
+    //         if (pm25ClickHandler) {
+    //             map.Event.unbind(sphere.EventName.Click, pm25ClickHandler);
+    //             setPm25ClickHandler(null);
+    //         }
+    //     }
+    // };
 
     // const handlePM25Toggle = (event) => {
     //     setIsPM25Checked(event.target.checked);
@@ -555,8 +566,9 @@ const Map = () => {
     //     }
     // };
 
-    let loadingCardAdded = false;
 
+
+    let loadingCardAdded = false;
     const insertAllhospital = async () => {
         const map = sphereMapRef.current;
         map.Overlays.clear();
@@ -1734,26 +1746,99 @@ const Map = () => {
                 )}
             </div>
             <Box className='Box' sx={{ zIndex: '10', marginTop: '-1.5%', justifyContent: 'space-between' }}>
-                <FormGroup
+                <SpeedDial
+                    className="heatModel"
+                    ariaLabel="SpeedDial basic example"
+                    icon={<LocalFireDepartmentIcon />}
+                    direction="left"
                     sx={{
-                        backgroundColor: '#00B2FF',
-                        boxShadow: '0px 3.88883px 3.88883px rgba(0, 0, 0, 0.25)',
-                        borderRadius: '15px',
-                        width: '130px',
-                        alignItems: 'center'
-                    }}>
-                    <FormControlLabel
-                        className="check"
-                        sx={{
-                            margin: '0.5rem',
-                            height: '18px'
+                        marginRight: '0.25rem',
+                        '& .MuiFab-primary': {
+                            borderRadius: '50%',
+                            width: 50,
+                            height: 50,
+                            background: 'linear-gradient(145deg, #FF4500 3.3%, #FF6F00 45.86%, #DDA0DD 90%)',
+                            color: '#FFFFFF'
+
+                        },
+                        '&:hover .MuiFab-primary': {
+                            boxShadow: '0 0 20px rgba(255, 255, 255, 1), 0 0 30px rgba(255, 255, 255, 0.6)',
+                            transition: 'box-shadow 0.5s ease-in-out',
+                            animation: 'blinkShadow 2.5s infinite'
+                        },
+                    }}
+                    componentsProps={{
+                        tooltip: {
+                            sx: {
+                                color: '#FF9900',
+                                bgcolor: 'white',
+                                fontFamily: 'Prompt',
+                                '& .MuiTooltip-arrow': {
+                                    color: 'white',
+                                },
+                            },
+                        },
+                    }}
+                >
+                    <SpeedDialAction
+                        className="HIDsat"
+                        key="satellite"
+                        icon={<SatelliteAltIcon />}
+                        tooltipTitle="ดาวเทียม"
+                        componentsProps={{
+                            tooltip: {
+                                sx: {
+                                    color: '#FF9900',
+                                    bgcolor: '#fff',
+                                    fontFamily: 'Prompt',
+                                    '& .MuiTooltip-arrow': {
+                                        color: '#FF9900',
+                                    },
+                                },
+                            },
                         }}
-                        value="PM2.5"
-                        control={<Switch checked={isPM25Checked} onChange={handlePM25Toggle} color="primary" />}
-                        label={<span style={{ fontSize: '14px', color: 'white' }}>PM2.5</span>}
-                        labelPlacement="start"
                     />
-                </FormGroup>
+
+                    <SpeedDialAction
+                        className="HIDmodel"
+                        key="HIDmodel"
+                        icon={<ModelTrainingIcon />}
+                        tooltipTitle="แบบจำลอง: พื้นที่ศึกษาจังหวัดนครราชสีมา"
+                        componentsProps={{
+                            tooltip: {
+                                sx: {
+                                    color: '#FF9900',
+                                    bgcolor: '#fff',
+                                    fontFamily: 'Prompt',
+                                    '& .MuiTooltip-arrow': {
+                                        color: '#FF9900',
+                                    },
+                                },
+                            },
+                        }}
+                    />
+
+                    <SpeedDialAction
+                        className="HIDtmd"
+                        key="tmd"
+                        icon={
+                            <img style={{ width: '25px' }} src={Tmd} />
+                        }
+                        tooltipTitle="กรมอุตุนิยมวิทยา"
+                        componentsProps={{
+                            tooltip: {
+                                sx: {
+                                    color: '#FF9900',
+                                    bgcolor: '#fff',
+                                    fontFamily: 'Prompt',
+                                    '& .MuiTooltip-arrow': {
+                                        color: '#FF9900',
+                                    },
+                                },
+                            },
+                        }}
+                    />
+                </SpeedDial>
 
                 <FormGroup
                     className='Zoom'
@@ -1763,12 +1848,12 @@ const Map = () => {
                         justifyItems: 'center',
                         alignItems: 'center',
                         borderRadius: '15px',
-                        backgroundColor: '#00B2FF',
+                        backgroundColor: '#ff9900',
                         boxShadow: '0px 3.88883px 3.88883px rgba(0, 0, 0, 0.25)',
                         color: 'white',
                         width: '40px',
                         '&:hover': {
-                            color: '#00B2FF',
+                            color: '#ff9900',
                         },
                     }}
                 >
@@ -1780,10 +1865,10 @@ const Map = () => {
                         componentsProps={{
                             tooltip: {
                                 sx: {
-                                    bgcolor: '#00B2FF',
+                                    bgcolor: '#ff9900',
                                     fontFamily: 'Prompt',
                                     '& .MuiTooltip-arrow': {
-                                        color: '#00B2FF',
+                                        color: '#ff9900',
                                     },
                                 },
                             },
@@ -1809,10 +1894,10 @@ const Map = () => {
                         componentsProps={{
                             tooltip: {
                                 sx: {
-                                    bgcolor: '#00B2FF',
+                                    bgcolor: '#ff9900',
                                     fontFamily: 'Prompt',
                                     '& .MuiTooltip-arrow': {
-                                        color: '#00B2FF',
+                                        color: '#ff9900',
                                     },
                                 },
                             },
@@ -1838,10 +1923,10 @@ const Map = () => {
                     componentsProps={{
                         tooltip: {
                             sx: {
-                                bgcolor: '#00B2FF',
+                                bgcolor: '#ff9900',
                                 fontFamily: 'Prompt',
                                 '& .MuiTooltip-arrow': {
-                                    color: '#00B2FF',
+                                    color: '#ff9900',
                                 },
                             },
                         },
@@ -1854,7 +1939,7 @@ const Map = () => {
                             margin: '0.5rem',
                             boxShadow: '0px 3.88883px 3.88883px rgba(0, 0, 0, 0.25)',
                             '&:hover': {
-                                fill: "#00B2FF",
+                                fill: "#ff9900",
                             },
                             img: {
                                 width: '25px',
@@ -1874,39 +1959,7 @@ const Map = () => {
                         </svg>
 
                     </IconButton>
-
                 </Tooltip>
-
-                {/* <Tooltip
-                    title="ระบุตำแหน่งที่สนใจ" arrow placement="left"
-                    TransitionComponent={Zoom}
-                    componentsProps={{
-                        tooltip: {
-                            sx: {
-                                bgcolor: '#00B2FF',
-                                fontFamily: 'Prompt',
-                                '& .MuiTooltip-arrow': {
-                                    color: '#00B2FF',
-                                },
-                            },
-                        },
-                    }}
-                >
-                    <IconButton
-                        className="hosnear"
-                        sx={{
-                            margin: '0.5rem',
-                            boxShadow: '0px 3.88883px 3.88883px rgba(0, 0, 0, 0.25)',
-                            color: 'white',
-                            '&:hover': {
-                                color: "#00B2FF",
-                            },
-                        }}
-                    >
-                        <WhereToVoteIcon />
-                    </IconButton>
-                </Tooltip> */}
-
 
                 <Tooltip
                     title="แผนที่ฐาน" arrow placement="left"
@@ -1914,10 +1967,10 @@ const Map = () => {
                     componentsProps={{
                         tooltip: {
                             sx: {
-                                bgcolor: '#00B2FF',
+                                bgcolor: '#ff9900',
                                 fontFamily: 'Prompt',
                                 '& .MuiTooltip-arrow': {
-                                    color: '#00B2FF',
+                                    color: '#ff9900',
                                 },
                             },
                         },
@@ -1931,7 +1984,7 @@ const Map = () => {
                             boxShadow: '0px 3.88883px 3.88883px rgba(0, 0, 0, 0.25)',
                             color: 'white',
                             '&:hover': {
-                                color: "#00B2FF",
+                                color: "#ff9900"
                             },
                         }}
                     >
@@ -1985,10 +2038,10 @@ const Map = () => {
                     componentsProps={{
                         tooltip: {
                             sx: {
-                                bgcolor: '#00B2FF',
+                                bgcolor: '#ff9900',
                                 fontFamily: 'Prompt',
                                 '& .MuiTooltip-arrow': {
-                                    color: '#00B2FF',
+                                    color: '#ff9900',
                                 },
                             },
                         },
@@ -2001,8 +2054,9 @@ const Map = () => {
                             margin: '0.5rem',
                             boxShadow: '0px 3.88883px 3.88883px rgba(0, 0, 0, 0.25)',
                             color: 'white',
+                            bgcolor: '#fff',
                             '&:hover': {
-                                color: "#00B2FF",
+                                color: "#ff9900",
                             },
                         }}
                     >
@@ -2043,7 +2097,7 @@ const Map = () => {
                     >
                         <WrongLocationIcon
                             sx={{
-                                color: '#00B2FF'
+                                color: '#ff9900'
                             }} />
                     </IconButton>
                 </Tooltip>
