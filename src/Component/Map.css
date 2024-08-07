@@ -1,6 +1,11 @@
 html {
     height: 100%;
   }
+
+* {
+  font-family: 'Prompt', sans-serif;
+  font-style: normal;
+}
   
   body {
     margin: 0px;
@@ -26,7 +31,6 @@ html {
     }
 
     margin: 0.25rem;
-
     position: absolute;
     z-index: 10;
     display: flex;
@@ -51,7 +55,6 @@ html {
   }
 
   margin: 0.25rem;
-
   position: absolute;
   z-index: 10;
   display: flex;
