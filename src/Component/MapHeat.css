@@ -147,10 +147,6 @@ background-image: url('src/Icon/Marker_Animation.gif') !important;
 line-height: 0;
 }
 
-/* .MuiMobileStepper-progress {
-  border-radius: '10px' !important;
-/* } */
-
 .HIDsat,
 .HIDmodel,
 .HIDtmd{
@@ -181,25 +177,6 @@ line-height: 0;
       box-shadow: 0 0 10px rgba(255, 69, 0, 0.7);
   }
 }
-
-
-
-/* .heatModel:hover {
-  box-shadow: 0 0 0 5px rgba(#000,.4) , 0 0 0 10px  #f05f75!important;
-} */
-
-/* box-shadow: 0 0 0 5px rgba(#000,.4) , 0 0 0 10px  #f05f75!important; */
-/* .HIDsat:hover{
-  color: #DDA0DD!important;
-}
-
-.HIDmodel:hover{
-  color: #FF6F00!important;
-}
-
-.HIDtmd:hover{
-  color:#FF4500!important;
-} */
 
 
 

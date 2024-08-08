@@ -85,116 +85,6 @@ const Map = () => {
                 map.Ui.Scale.visible(false);
                 map.Ui.LayerSelector.visible(false);
 
-                if (isPM25Checked) {
-                    const pm25wms = new sphere.Layer('0', {
-                        type: sphere.LayerType.WMS,
-                        url: "https://service-proxy-765rkyfg3q-as.a.run.app/api_geoserver/geoserver/pm25_hourly_raster_24hr/wms",
-                        zoomRange: { min: 1, max: 15 },
-                        zIndex: 5,
-                        opacity: 1,
-                        id: 'layer_24pm25'
-                    });
-                    map.Layers.add(pm25wms);
-                    setPm25wmsLayer(pm25wms);
-
-                    const handleMapClick = (location) => {
-                        const lat = location.lat;
-                        const lon = location.lon;
-
-                        axios.get(`https://pm25.gistda.or.th/rest/getPm25byLocation?lat=${lat}&lng=${lon}`)
-                            .then(response => {
-                                const data = response.data.data;
-                                const pm25 = data['pm25'];
-                                const tb = data.loc['tb_tn'];
-                                const ap = data.loc['ap_tn'];
-                                const pv = data.loc['pv_tn'];
-                                const date = data.datetimeThai['dateThai'];
-                                const time = data.datetimeThai['timeThai'];
-
-                                let color;
-                                let level;
-                                if (pm25 < 15) {
-                                    color = '#4FAFBF';
-                                    level = 'ดีมาก';
-                                } else if (pm25 > 15 && pm25 <= 25) {
-                                    color = '#9FCF62';
-                                    level = 'ดี';
-                                } else if (pm25 > 25 && pm25 <= 37.5) {
-                                    color = '#F1E151';
-                                    level = 'ปานกลาง';
-                                } else if (pm25 > 37.5 && pm25 <= 75) {
-                                    color = '#F1A53B';
-                                    level = 'เริ่มมีผล';
-                                } else {
-                                    color = '#EB4E47';
-                                    level = 'มีผล';
-                                }
-
-                                const pm25Formatted = pm25.toFixed(2);
-
-                                const loadingHtml = `
-                                            <div style="display: flex; align-items: center; justify-content: center; padding: 16px;">
-                                                <div style="border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #3498db; width: 24px; height: 24px; animation: spin 1s linear infinite; margin-right: 8px;"></div>
-                                                <span style="font-size: 14px;">กำลังค้นหาข้อมูล...</span>
-                                            </div>
-                                            <style>
-                                                @keyframes spin {
-                                                    0% { transform: rotate(0deg); }
-                                                    100% { transform: rotate(360deg); }
-                                                }
-                                            </style>
-                                        `;
-
-                                const popupDetail = `
-                                        <div style="padding:0.5rem;">
-                                            <span id="location" style="font-size: 16px; font-weight: bold;">${tb} ${ap} ${pv}</span><br />
-                                            <span style="font-size: 14px;">สภาพอากาศวันนี้</span><br />
-                                            <span style="font-size: 12px;">ค่า PM2.5</span><br />
-                                            <span id='value' style={{ fontWeight: 'bold', fontSize: '30px' }}><span style="color: ${color}; font-weight: bold; font-size: 30px;">${pm25Formatted} </span></span>
-                                            <span style="font-size: 10px;">µg./m3</span>
-                                            <span id="level"><span style="color: ${color}; font-weight: bold; font-size: 30px;"> ${level}</span><br />
-                                            <span id="update" style="font-size: 12px; color: #a6a6a6;">อัพเดทล่าสุด ${date} ${time}</span>
-                                        </div>
-                                    `;
-
-                                var popUp = new sphere.Popup({ lon: lon, lat: lat }, {
-                                    title: `
-                                        <span style='font-weight: 500; margin-left: 0.5rem;'> ตำแหน่งที่สนใจ</span>
-                                        <span style='font-weight: 400; color: #a6a6a6;'>
-                                            ${lat.toFixed(4)}, ${lon.toFixed(4)}
-                                        </span>
-                                    `
-                                    ,
-                                    detail: loadingHtml,
-                                    loadDetail: updateDetail,
-                                    size: { width: '100%' },
-                                    closable: true
-                                });
-
-                                function updateDetail(element) {
-                                    setTimeout(function () {
-                                        element.innerHTML = popupDetail;
-                                    }, 1000);
-                                }
-                                map.Overlays.add(popUp);
-                            });
-                    };
-
-                    map.Event.bind(sphere.EventName.Click, handleMapClick);
-                    setPm25ClickHandler(() => handleMapClick);
-
-                } else {
-                    if (pm25wmsLayer) {
-                        map.Layers.remove(pm25wmsLayer);
-                        setPm25wmsLayer(null);
-                    }
-
-                    if (pm25ClickHandler) {
-                        map.Event.unbind(sphere.EventName.Click, pm25ClickHandler);
-                        setPm25ClickHandler(null);
-                    }
-                }
-
                 const getLoc = () => {
                     navigator.geolocation.getCurrentPosition(
                         (position) => {
@@ -314,7 +204,7 @@ const Map = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // const handlePM25Toggle = (e) => {
+    // const handleSatLayr = (e) => {
     //     const sphere = window.sphere;
     //     const map = sphereMapRef.current;
 
@@ -433,139 +323,143 @@ const Map = () => {
     //     }
     // };
 
-    // const handlePM25Toggle = (event) => {
-    //     setIsPM25Checked(event.target.checked);
-    //     const sphere = window.sphere;
-    //     const map = sphereMapRef.current;
+    const handleSatLayr = (event) => {
+        setIsPM25Checked(event.target);
+        const sphere = window.sphere;
+        const map = sphereMapRef.current;
+        const date = 0
 
-    //     if (event.target.checked) {
-    //         const pm25wms = new sphere.Layer('0', {
-    //             type: sphere.LayerType.WMS,
-    //             url: "https://service-proxy-765rkyfg3q-as.a.run.app/api_geoserver/geoserver/pm25_hourly_raster_24hr/wms",
-    //             zoomRange: { min: 1, max: 15 },
-    //             zIndex: 5,
-    //             opacity: 1,
-    //             id: 'layer_24pm25'
-    //         });
-    //         map.Layers.add(pm25wms);
-    //         setPm25wmsLayer(pm25wms);
+        if (event.target) {
+            const pm25wms = new sphere.Layer(`airpollution:GK2_GEMS_L2_T-${date}_0045_AOD443`, {
+                type: sphere.LayerType.WMS,
+                url: "https://pollution-app-33s3yn5pmq-as.a.run.app/mapservice/geoserver/airpollution/wms",
+                format: 'image/png',
+                transparent: 'True',
+                zoomRange: { min: 1, max: 15 },
+                zIndex: 5,
+                opacity: 1,
+            });
 
+            document.getElementById('LyrDate').innerHTML = `ข้อมูลวันที่ ${date}`
 
-    //         //Add Popup Event
-    //         map.Event.bind(sphere.EventName.Click, function (location) {
-    //             // console.log(location);
-
-    //             // Assuming location has lat and lon properties
-    //             var lat = location.lat;
-    //             var lon = location.lon;
-
-    //             axios.get(`https://pm25.gistda.or.th/rest/getPm25byLocation?lat=${lat}&lng=${lon}`)
-    //                 .then(response => {
-    //                     const data = response.data.data
-    //                     const tb = data.loc['tb_tn']
-    //                     const ap = data.loc['ap_tn']
-
-    //                     const pv = data.loc['pv_tn']
-
-    //                     const pm25 = data['pm25']
-
-    //                     // update sect
-    //                     const date = data.datetimeThai['dateThai']
-    //                     const time = data.datetimeThai['timeThai']
-
-    //                     ///////////////////////////////////////////////////////////////////////////////////////////////
-    //                     ///////////////////////////////////////// Text Color  /////////////////////////////////////////
-    //                     ///////////////////////////////////////////////////////////////////////////////////////////////
-    //                     let color;
-    //                     if (pm25 < 15) {
-    //                         color = '#4FAFBF'; // Very Good air quality
-    //                     } else if (pm25 > 15 && pm25 <= 25) {
-    //                         color = '#9FCF62';
-    //                     } else if (pm25 > 25 && pm25 <= 37.5) {
-    //                         color = '#F1E151'; // Good
-    //                     } else if (pm25 > 37.5 && pm25 <= 75) {
-    //                         color = '#F1A53B'; // Moderate
-    //                     } else {
-    //                         color = '#EB4E47'; // Unhealthy for sensitive group
-    //                     }
-
-    //                     let level;
-    //                     if (pm25 < 15) {
-    //                         level = 'ดีมาก'; // Very Good air quality
-    //                     } else if (pm25 > 15 && pm25 <= 25) {
-    //                         level = 'ดี';
-    //                     } else if (pm25 > 25 && pm25 <= 37.5) {
-    //                         level = 'ปานกลาง'; // Good
-    //                     } else if (pm25 > 37.5 && pm25 <= 75) {
-    //                         level = 'เริ่มมีผล'; // Moderate
-    //                     } else {
-    //                         level = 'มีผล'; // Unhealthy for sensitive group
-    //                     }
-    //                     ///////////////////////////////////////////////////////////////////////////////////////////////
-    //                     ///////////////////////////////////////// Text Color  /////////////////////////////////////////
-    //                     ///////////////////////////////////////////////////////////////////////////////////////////////
-
-    //                     const pm25Formatted = pm25.toFixed(2);
-
-    //                     const loadingHtml = `
-    //                                 <div style="display: flex; align-items: center; justify-content: center; padding: 16px;">
-    //                                     <div style="border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #3498db; width: 24px; height: 24px; animation: spin 1s linear infinite; margin-right: 8px;"></div>
-    //                                     <span style="font-size: 14px;">กำลังค้นหาข้อมูล...</span>
-    //                                 </div>
-    //                                 <style>
-    //                                     @keyframes spin {
-    //                                         0% { transform: rotate(0deg); }
-    //                                         100% { transform: rotate(360deg); }
-    //                                     }
-    //                                 </style>
-    //                             `;
-
-    //                     const popupDetail = `
-    //                             <div style="padding:0.5rem;">
-    //                                 <span id="location" style="font-size: 16px; font-weight: bold;">${tb} ${ap} ${pv}</span><br />
-    //                                 <span style="font-size: 14px;">สภาพอากาศวันนี้</span><br />
-    //                                 <span style="font-size: 12px;">ค่า PM2.5</span><br />
-    //                                 <span id='value' style={{ fontWeight: 'bold', fontSize: '30px' }}><span style="color: ${color}; font-weight: bold; font-size: 30px;">${pm25Formatted} </span></span>
-    //                                 <span style="font-size: 10px;">µg./m3</span>
-    //                                 <span id="level"><span style="color: ${color}; font-weight: bold; font-size: 30px;"> ${level}</span><br />
-    //                                 <span id="update" style="font-size: 12px; color: #a6a6a6;">อัพเดทล่าสุด ${date} ${time}</span>
-    //                             </div>
-    //                         `;
-
-    //                     var popUp = new sphere.Popup({ lon: lon, lat: lat }, {
-    //                         title: `
-    //                             <span style='font-weight: 500; margin-left: 0.5rem;'> ตำแหน่งที่สนใจ</span>
-    //                             <span style='font-weight: 400; color: #a6a6a6;'>
-    //                                 ${lat.toFixed(4)}, ${lon.toFixed(4)} (Lat, Lon)
-    //                             </span>
-    //                         `
-    //                         ,
-    //                         detail: loadingHtml,
-    //                         loadDetail: updateDetail,
-    //                         size: { width: '100%' },
-    //                         closable: true
-    //                     });
-
-    //                     function updateDetail(element) {
-    //                         setTimeout(function () {
-    //                             element.innerHTML = popupDetail;
-    //                         }, 1000);
-    //                     }
+            map.Layers.add(pm25wms);
+            setPm25wmsLayer(pm25wms);
 
 
-    //                     map.Overlays.add(popUp);
-    //                 });
+            //Add Popup Event
+            map.Event.bind(sphere.EventName.Click, function (location) {
+                // console.log(location);
 
-    //         });
+                // Assuming location has lat and lon properties
+                var lat = location.lat;
+                var lon = location.lon;
 
-    //     } else {
-    //         if (pm25wmsLayer) {
-    //             map.Layers.remove(pm25wmsLayer);
-    //             setPm25wmsLayer(null);
-    //         }
-    //     }
-    // };
+                axios.get(`https://pm25.gistda.or.th/rest/getPm25byLocation?lat=${lat}&lng=${lon}`)
+                    .then(response => {
+                        const data = response.data.data
+                        const tb = data.loc['tb_tn']
+                        const ap = data.loc['ap_tn']
 
+                        const pv = data.loc['pv_tn']
+
+                        const pm25 = data['pm25']
+
+                        // update sect
+                        const date = data.datetimeThai['dateThai']
+                        const time = data.datetimeThai['timeThai']
+
+                        ///////////////////////////////////////////////////////////////////////////////////////////////
+                        ///////////////////////////////////////// Text Color  /////////////////////////////////////////
+                        ///////////////////////////////////////////////////////////////////////////////////////////////
+                        let color;
+                        if (pm25 < 15) {
+                            color = '#4FAFBF'; // Very Good air quality
+                        } else if (pm25 > 15 && pm25 <= 25) {
+                            color = '#9FCF62';
+                        } else if (pm25 > 25 && pm25 <= 37.5) {
+                            color = '#F1E151'; // Good
+                        } else if (pm25 > 37.5 && pm25 <= 75) {
+                            color = '#F1A53B'; // Moderate
+                        } else {
+                            color = '#EB4E47'; // Unhealthy for sensitive group
+                        }
+
+                        let level;
+                        if (pm25 < 15) {
+                            level = 'ดีมาก'; // Very Good air quality
+                        } else if (pm25 > 15 && pm25 <= 25) {
+                            level = 'ดี';
+                        } else if (pm25 > 25 && pm25 <= 37.5) {
+                            level = 'ปานกลาง'; // Good
+                        } else if (pm25 > 37.5 && pm25 <= 75) {
+                            level = 'เริ่มมีผล'; // Moderate
+                        } else {
+                            level = 'มีผล'; // Unhealthy for sensitive group
+                        }
+                        ///////////////////////////////////////////////////////////////////////////////////////////////
+                        ///////////////////////////////////////// Text Color  /////////////////////////////////////////
+                        ///////////////////////////////////////////////////////////////////////////////////////////////
+
+                        const pm25Formatted = pm25.toFixed(2);
+
+                        const loadingHtml = `
+                                    <div style="display: flex; align-items: center; justify-content: center; padding: 16px;">
+                                        <div style="border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #3498db; width: 24px; height: 24px; animation: spin 1s linear infinite; margin-right: 8px;"></div>
+                                        <span style="font-size: 14px;">กำลังค้นหาข้อมูล...</span>
+                                    </div>
+                                    <style>
+                                        @keyframes spin {
+                                            0% { transform: rotate(0deg); }
+                                            100% { transform: rotate(360deg); }
+                                        }
+                                    </style>
+                                `;
+
+                        const popupDetail = `
+                                <div style="padding:0.5rem;">
+                                    <span id="location" style="font-size: 16px; font-weight: bold;">${tb} ${ap} ${pv}</span><br />
+                                    <span style="font-size: 14px;">สภาพอากาศวันนี้</span><br />
+                                    <span style="font-size: 12px;">ค่า PM2.5</span><br />
+                                    <span id='value' style={{ fontWeight: 'bold', fontSize: '30px' }}><span style="color: ${color}; font-weight: bold; font-size: 30px;">${pm25Formatted} </span></span>
+                                    <span style="font-size: 10px;">µg./m3</span>
+                                    <span id="level"><span style="color: ${color}; font-weight: bold; font-size: 30px;"> ${level}</span><br />
+                                    <span id="update" style="font-size: 12px; color: #a6a6a6;">อัพเดทล่าสุด ${date} ${time}</span>
+                                </div>
+                            `;
+
+                        var popUp = new sphere.Popup({ lon: lon, lat: lat }, {
+                            title: `
+                                <span style='font-weight: 500; margin-left: 0.5rem;'> ตำแหน่งที่สนใจ</span>
+                                <span style='font-weight: 400; color: #a6a6a6;'>
+                                    ${lat.toFixed(4)}, ${lon.toFixed(4)} (Lat, Lon)
+                                </span>
+                            `
+                            ,
+                            detail: loadingHtml,
+                            loadDetail: updateDetail,
+                            size: { width: '100%' },
+                            closable: true
+                        });
+
+                        function updateDetail(element) {
+                            setTimeout(function () {
+                                element.innerHTML = popupDetail;
+                            }, 1000);
+                        }
+
+
+                        map.Overlays.add(popUp);
+                    });
+
+            });
+
+        } else {
+            if (pm25wmsLayer) {
+                map.Layers.remove(pm25wmsLayer);
+                setPm25wmsLayer(null);
+            }
+        }
+    };
 
 
     let loadingCardAdded = false;
@@ -1749,14 +1643,14 @@ const Map = () => {
                 <SpeedDial
                     className="heatModel"
                     ariaLabel="SpeedDial basic example"
-                    icon={<LocalFireDepartmentIcon />}
+                    icon={<LocalFireDepartmentIcon sx={{ width: '60px' }} />}
                     direction="left"
                     sx={{
-                        marginRight: '0.25rem',
+                        marginRight: '0rem',
                         '& .MuiFab-primary': {
                             borderRadius: '50%',
-                            width: 50,
-                            height: 50,
+                            width: 60,
+                            height: 60,
                             background: 'linear-gradient(145deg, #FF4500 3.3%, #FF6F00 45.86%, #DDA0DD 90%)',
                             color: '#FFFFFF'
 
@@ -1767,6 +1661,7 @@ const Map = () => {
                             animation: 'blinkShadow 2.5s infinite'
                         },
                     }}
+
                     componentsProps={{
                         tooltip: {
                             sx: {
@@ -1781,7 +1676,28 @@ const Map = () => {
                     }}
                 >
                     <SpeedDialAction
+                        className="HIDtmd"
+                        key="tmd"
+                        icon={
+                            <img style={{ width: '25px' }} src={Tmd} />
+                        }
+                        tooltipTitle="กรมอุตุนิยมวิทยา"
+                        componentsProps={{
+                            tooltip: {
+                                sx: {
+                                    color: '#FF9900',
+                                    bgcolor: '#fff',
+                                    fontFamily: 'Prompt',
+                                    '& .MuiTooltip-arrow': {
+                                        color: '#FF9900',
+                                    },
+                                },
+                            },
+                        }}
+                    />
+                    <SpeedDialAction
                         className="HIDsat"
+                        onClick={handleSatLayr}
                         key="satellite"
                         icon={<SatelliteAltIcon />}
                         tooltipTitle="ดาวเทียม"
@@ -1804,27 +1720,6 @@ const Map = () => {
                         key="HIDmodel"
                         icon={<ModelTrainingIcon />}
                         tooltipTitle="แบบจำลอง: พื้นที่ศึกษาจังหวัดนครราชสีมา"
-                        componentsProps={{
-                            tooltip: {
-                                sx: {
-                                    color: '#FF9900',
-                                    bgcolor: '#fff',
-                                    fontFamily: 'Prompt',
-                                    '& .MuiTooltip-arrow': {
-                                        color: '#FF9900',
-                                    },
-                                },
-                            },
-                        }}
-                    />
-
-                    <SpeedDialAction
-                        className="HIDtmd"
-                        key="tmd"
-                        icon={
-                            <img style={{ width: '25px' }} src={Tmd} />
-                        }
-                        tooltipTitle="กรมอุตุนิยมวิทยา"
                         componentsProps={{
                             tooltip: {
                                 sx: {
